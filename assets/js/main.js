@@ -71,3 +71,20 @@ function buildSidebar(activeId) {
     </a>`;
   }).join('');
 }
+
+/* ── MOBILE RESPONSIVENESS ── */
+function toggleMobileMenu() {
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+  
+  let overlay = document.querySelector('.sidebar-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = 'sidebar-overlay';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', toggleMobileMenu);
+  }
+  
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
