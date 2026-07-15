@@ -493,7 +493,12 @@ async function doLogin() {
     if (!r.ok) { showErr(err, r.error); return; }
     session = r.employer;
     startApp();
-  } catch { showErr(err, 'Cannot reach server. Is it running?'); }
+  } catch {
+    err.textContent = 'Server offline - using Offline Demo Mode!';
+    err.style.display = 'block'; err.style.backgroundColor = '#d4edda'; err.style.color = '#155724';
+    session = { id: 'demo_emp_1', name: 'Demo Employer', email: 'demo@employer.com', company: 'Acme Corp', jobs_posted: 0 };
+    setTimeout(startApp, 1000);
+  }
 }
 
 async function doRegister() {
@@ -511,7 +516,12 @@ async function doRegister() {
     if (!r.ok) { showErr(err, r.error); return; }
     session = r.employer;
     startApp();
-  } catch { showErr(err, 'Cannot reach server. Is it running?'); }
+  } catch {
+    err.textContent = 'Server offline - using Offline Demo Mode!';
+    err.style.display = 'block'; err.style.backgroundColor = '#d4edda'; err.style.color = '#155724';
+    session = { id: 'demo_emp_1', name: 'Demo Employer', email: 'demo@employer.com', company: 'Acme Corp', jobs_posted: 0 };
+    setTimeout(startApp, 1000);
+  }
 }
 
 function logout() {
