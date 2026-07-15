@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Attendance – AI GramSetu</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <style>
+    .attendance-layout { display:grid; grid-template-columns:320px 1fr; gap:16px; }
+    .calendar-card { background:var(--card-bg); border:1px solid var(--border); border-radius:12px; padding:20px; }
+    .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .cal-title { font-size:15px; font-weight:700; }
+    .cal-nav { background:none; border:none; cursor:pointer; padding:4px 8px; font-size:16px; color:var(--text-muted); border-radius:6px; }
+    .cal-nav:hover { background:var(--input-bg); }
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+    .cal-day-label { text-align:center; font-size:11px; font-weight:700; color:var(--text-muted); padding:4px 0; }
+    .cal-day {
+      aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+      border-radius:8px; font-size:13px; cursor:pointer; transition:background 0.12s;
+    }
+    .cal-day:hover { background:var(--green-light); color:var(--green); }
+    .cal-day.today { background:var(--green); color:#fff; font-weight:700; }
+    .cal-day.selected { background:var(--green); color:#fff; font-weight:700; }
+    .cal-day.other-month { color:var(--border); }
+    .cal-day.has-record { position:relative; }
+    .cal-day.has-record::after { content:''; position:absolute; bottom:3px; left:50%; transform:translateX(-50%); width:4px; height:4px; border-radius:50%; background:var(--green); }
+    .cal-day.today.has-record::after { background:#fff; }
+    .daily-card { background:var(--card-bg); border:1px solid var(--border); border-radius:12px; padding:20px; }
+    .daily-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+    .daily-title { font-size:15px; font-weight:700; }
+    .attendance-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
+    .attendance-row:last-child { border-bottom:none; }
+    .status-btn { padding:5px 12px; border-radius:6px; border:1px solid var(--border); background:none; font-size:12px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.12s; }
+    .status-btn.present { background:#e6f4ea; color:#2d7a3a; border-color:#2d7a3a; }
+    .status-btn.absent { background:#fdecea; color:#e74c3c; border-color:#e74c3c; }
+    .status-btn.late { background:#fff3e0; color:#e67e22; border-color:#e67e22; }
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><svg viewBox="0 0 32 32" fill="none"><circle cx="11" cy="10" r="4" fill="white"/><circle cx="21" cy="10" r="4" fill="white" opacity="0.7"/><path d="M2 26c0-5 4-8 9-8s9 3 9 8" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M21 18c3.5 0 7 2.2 7 6.5" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.7"/></svg></div>
+    <div class="brand-text"><strong>AI GramSetu</strong><span>Village Admin Portal</span></div>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav"></nav>
+  <div class="sidebar-footer">
+    <div class="avatar">DE</div>
+    <div class="footer-info"><strong>Development User</strong><span>Postmaster</span></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><h1>Attendance</h1><p>Track worker attendance</p></div>
+    <div class="lang-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> EN</div>
+  </div>
+
+  <div class="content">
+    <div class="page-heading"><h2>Attendance Management</h2><p>Track worker attendance and manage work schedules</p></div>
+
+    <div class="stats-grid-4" style="margin-bottom:20px;">
+      <div class="stat-card"><div><div class="stat-label">Present Today</div><div class="stat-value green" id="sPresent">0</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/><circle cx="12" cy="12" r="10"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">Absent Today</div><div class="stat-value" style="color:var(--red)" id="sAbsent">0</div></div><div class="stat-icon" style="color:var(--red)"><svg viewBox="0 0 24 24" style="stroke:var(--red)"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">Late Arrivals</div><div class="stat-value orange" id="sLate">0</div></div><div class="stat-icon orange"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">Attendance Rate</div><div class="stat-value green" id="sRate">0%</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div></div>
+    </div>
+
+    <div class="attendance-layout">
+      <!-- Calendar -->
+      <div class="calendar-card">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span style="font-size:14px;font-weight:700;">Select Date</span>
+        </div>
+        <div class="cal-header">
+          <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+          <span class="cal-title" id="calTitle"></span>
+          <button class="cal-nav" onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <!-- Voice Authentication Simulator -->
+      <div class="calendar-card" style="margin-top: 16px; border-color: var(--blue);">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;color:var(--blue);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15.05 5A5 5 0 0 1 19 8.95M15.05 1A9 9 0 0 1 23 8.94m-1 7.98v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span style="font-size:14px;font-weight:700;">Voice Auth (Anti-Fraud)</span>
+        </div>
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Simulate an incoming IVR call to authenticate a worker's voiceprint.</p>
+        <select id="voiceWorkerSelect" style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border); margin-bottom:12px; font-family:'DM Sans',sans-serif;">
+          <option value="">Select Worker...</option>
+        </select>
+        <button class="btn-green" style="width:100%; justify-content:center;" onclick="simulateVoiceCall()">Simulate Incoming Call</button>
+      </div>
+
+      <!-- Daily Panel -->
+      <div class="daily-card">
+        <div class="daily-header">
+          <div class="daily-title">Daily Attendance</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn-green" onclick="clockInAll()">
+              <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+              Clock In
+            </button>
+            <button class="btn-outline" onclick="clockOutAll()">
+              <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Clock Out
+            </button>
+            <button class="btn-outline" onclick="exportAttendance()">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export
+            </button>
+          </div>
+        </div>
+        <div class="search-bar" style="margin-bottom:14px;padding:10px 14px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchWorker" placeholder="Search workers..." oninput="renderDaily()"/>
+          <select class="filter-select" id="filterAttStatus" onchange="renderDaily()">
+            <option value="">All Status</option><option>Present</option><option>Absent</option><option>Late</option>
+          </select>
+        </div>
+        <div id="dailyList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="../assets/js/main.js"></script>
+<script>
+  buildSidebar('attendance');
+
+  const today = new Date();
+  let viewYear = today.getFullYear();
+  let viewMonth = today.getMonth();
+  let selectedDate = today.toISOString().split('T')[0];
+
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+  function dateKey(y,m,d) {
+    return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+
+  function getAttendance(dateStr) {
+    const db = getDB();
+    return (db.attendance && db.attendance[dateStr]) || {};
+  }
+
+  function saveAttendance(dateStr, data) {
+    const db = getDB();
+    if(!db.attendance) db.attendance = {};
+    db.attendance[dateStr] = data;
+    saveDB(db);
+  }
+
+  function setWorkerStatus(workerName, status) {
+    const rec = getAttendance(selectedDate);
+    rec[workerName] = { status, time: new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) };
+    saveAttendance(selectedDate, rec);
+    renderStats(); renderDaily(); renderCalendar();
+  }
+
+  function clockInAll() {
+    const workers = getDB().workers || [];
+    if(!workers.length){showToast('No workers registered','error');return;}
+    const rec = getAttendance(selectedDate);
+    workers.forEach(w => { if(!rec[w.name]) rec[w.name] = {status:'Present', time: new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}; });
+    saveAttendance(selectedDate, rec);
+    showToast('✅ All workers clocked in!'); renderStats(); renderDaily(); renderCalendar();
+  }
+
+  function clockOutAll() {
+    const rec = getAttendance(selectedDate);
+    Object.keys(rec).forEach(k => { if(rec[k].status==='Present') rec[k].clockOut = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}); });
+    saveAttendance(selectedDate, rec);
+    showToast('Clock out recorded'); renderDaily();
+  }
+
+  function exportAttendance() { showToast('📄 Export coming soon'); }
+
+  function renderStats() {
+    const rec = getAttendance(selectedDate);
+    const vals = Object.values(rec);
+    const present = vals.filter(v=>v.status==='Present').length;
+    const absent = vals.filter(v=>v.status==='Absent').length;
+    const late = vals.filter(v=>v.status==='Late').length;
+    const total = present + absent + late;
+    document.getElementById('sPresent').textContent = present;
+    document.getElementById('sAbsent').textContent = absent;
+    document.getElementById('sLate').textContent = late;
+    document.getElementById('sRate').textContent = total ? Math.round((present/total)*100)+'%' : '0%';
+  }
+
+  function renderDaily() {
+    const workers = getDB().workers || [];
+    const rec = getAttendance(selectedDate);
+    const q = document.getElementById('searchWorker').value.toLowerCase();
+    const fs = document.getElementById('filterAttStatus').value;
+
+    let list = workers;
+    if(q) list = list.filter(w=>w.name.toLowerCase().includes(q));
+    if(fs) list = list.filter(w=>(rec[w.name]||{}).status===fs);
+
+    const el = document.getElementById('dailyList');
+
+    if(!workers.length) {
+      el.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><p>No attendance records for ${selectedDate}</p></div>`;
+      return;
+    }
+    if(!list.length) { el.innerHTML=`<div class="empty-state"><p>No workers match filter</p></div>`; return; }
+
+    el.innerHTML = list.map(w => {
+      const r = rec[w.name] || {};
+      const st = r.status || 'Not Marked';
+      return `<div class="attendance-row">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="avatar" style="width:32px;height:32px;font-size:11px;">${getInitials(w.name)}</div>
+          <div>
+            <strong style="font-size:13.5px;">${w.name}</strong>
+            <div style="font-size:11.5px;color:var(--text-muted);">${w.skill} ${r.time?'• In: '+r.time:''} ${r.clockOut?'• Out: '+r.clockOut:''}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="status-btn ${st==='Present'?'present':''}" onclick="setWorkerStatus('${w.name}','Present')">Present</button>
+          <button class="status-btn ${st==='Late'?'late':''}" onclick="setWorkerStatus('${w.name}','Late')">Late</button>
+          <button class="status-btn ${st==='Absent'?'absent':''}" onclick="setWorkerStatus('${w.name}','Absent')">Absent</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderCalendar() {
+    const db = getDB();
+    const att = db.attendance || {};
+    document.getElementById('calTitle').textContent = `${MONTHS[viewMonth]} ${viewYear}`;
+    const grid = document.getElementById('calGrid');
+    let html = DAYS.map(d=>`<div class="cal-day-label">${d}</div>`).join('');
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+    const daysInPrev = new Date(viewYear, viewMonth, 0).getDate();
+
+    for(let i=0; i<firstDay; i++) {
+      const d = daysInPrev - firstDay + 1 + i;
+      html += `<div class="cal-day other-month">${d}</div>`;
+    }
+    const todayStr = today.toISOString().split('T')[0];
+    for(let d=1; d<=daysInMonth; d++) {
+      const ds = dateKey(viewYear, viewMonth, d);
+      const isToday = ds===todayStr;
+      const isSel = ds===selectedDate;
+      const hasRec = att[ds] && Object.keys(att[ds]).length>0;
+      html += `<div class="cal-day ${isSel?'selected':''} ${isToday&&!isSel?'today':''} ${hasRec?'has-record':''}" onclick="selectDate('${ds}')">${d}</div>`;
+    }
+    const remaining = 42 - firstDay - daysInMonth;
+    for(let d=1; d<=remaining; d++) html += `<div class="cal-day other-month">${d}</div>`;
+    grid.innerHTML = html;
+  }
+
+  function selectDate(ds) {
+    selectedDate = ds;
+    renderCalendar(); renderStats(); renderDaily();
+  }
+
+  function changeMonth(dir) {
+    viewMonth += dir;
+    if(viewMonth>11){viewMonth=0;viewYear++;}
+    if(viewMonth<0){viewMonth=11;viewYear--;}
+    renderCalendar();
+  }
+
+  function populateVoiceWorkers() {
+    const workers = getDB().workers || [];
+    const sel = document.getElementById('voiceWorkerSelect');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Select Worker...</option>' + workers.map(w => `<option value="${w.name}">${w.name}</option>`).join('');
+  }
+  
+  async function simulateVoiceCall() {
+    const wName = document.getElementById('voiceWorkerSelect').value;
+    if (!wName) { showToast('Please select a worker first', 'error'); return; }
+    
+    showToast(`Incoming call from ${wName}... Verifying voiceprint...`);
+    try {
+      const res = await fetch(`${localStorage.getItem('API_BASE') || 'http://localhost:3000'}/api/attendance/voice-checkin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workerName: wName, dateStr: selectedDate })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        if (data.verified) {
+          showToast(`✅ ${data.message}`);
+          renderStats(); renderDaily(); renderCalendar();
+        } else {
+          showToast(`🚨 ${data.message}`, 'error');
+        }
+      } else {
+        showToast(`❌ Error: ${data.error}`, 'error');
+      }
+    } catch (e) {
+      showToast('❌ Server error during voice verification.', 'error');
+    }
+  }
+
+  populateVoiceWorkers();
+  renderCalendar(); renderStats(); renderDaily();
+</script>
+</body>
+</html>

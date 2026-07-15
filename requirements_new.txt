@@ -1,0 +1,14 @@
+flask
+flask-cors
+pandas
+numpy
+scikit-learn
+xgboost
+catboost
+lightgbm
+prophet
+hmmlearn
+sentence-transformers
+Faker
+requests
+PyPDF2

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI GramSetu – Village Admin Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #e8ede5;
+      --card-bg: #ffffff;
+      --green: #2d7a3a;
+      --green-hover: #246331;
+      --tab-bg: #e4e8e1;
+      --tab-active: #ffffff;
+      --input-bg: #eaede7;
+      --border: #d4d8d0;
+      --text-dark: #1a2e1c;
+      --text-muted: #7a8f7c;
+      --text-label: #2c3e2e;
+      --red: #c0392b;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .lang-switcher {
+      position: fixed;
+      top: 18px; right: 24px;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; color: var(--text-label);
+      font-weight: 500; cursor: pointer; user-select: none;
+    }
+    .lang-switcher svg { opacity: 0.7; }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 36px 40px 40px;
+      width: 440px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.07);
+    }
+
+    .brand {
+      display: flex; flex-direction: column; align-items: center; margin-bottom: 28px;
+    }
+    .logo-icon {
+      width: 56px; height: 56px;
+      background: var(--green); border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 10px;
+    }
+    .logo-icon svg { width: 32px; height: 32px; }
+    .brand-name { font-size: 22px; font-weight: 700; color: var(--text-dark); letter-spacing: -0.3px; }
+    .brand-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; font-weight: 400; }
+
+    .toggle-group {
+      display: flex; background: var(--tab-bg); border-radius: 10px;
+      padding: 4px; margin-bottom: 10px; gap: 4px;
+    }
+    .toggle-btn {
+      flex: 1; padding: 9px 0; border: none; border-radius: 7px;
+      background: transparent; cursor: pointer; font-size: 13.5px; font-weight: 500;
+      color: var(--text-muted); font-family: 'DM Sans', sans-serif;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    }
+    .toggle-btn.active {
+      background: var(--tab-active); color: var(--text-dark);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.09);
+    }
+    .toggle-btn svg { width: 15px; height: 15px; opacity: 0.75; }
+    .toggle-btn.active svg { opacity: 1; }
+
+    .auth-tabs {
+      display: flex; background: var(--tab-bg); border-radius: 10px;
+      padding: 4px; margin-bottom: 22px; gap: 4px;
+    }
+    .auth-tab {
+      flex: 1; padding: 9px 0; border: none; border-radius: 7px;
+      background: transparent; cursor: pointer; font-size: 13.5px; font-weight: 600;
+      color: var(--text-muted); font-family: 'DM Sans', sans-serif;
+      transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    }
+    .auth-tab.active {
+      background: var(--tab-active); color: var(--text-dark);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.09);
+    }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block; font-size: 13.5px; font-weight: 600;
+      color: var(--text-label); margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%; padding: 11px 14px;
+      background: var(--input-bg); border: 1.5px solid transparent;
+      border-radius: 9px; font-size: 14px; font-family: 'DM Sans', sans-serif;
+      color: var(--text-dark); outline: none; transition: border-color 0.18s;
+    }
+    .field input::placeholder { color: var(--text-muted); font-size: 13.5px; }
+    .field input:focus { border-color: var(--green); background: #f0f4ee; }
+    .field input.error { border-color: var(--red); }
+
+    .btn-signin {
+      width: 100%; padding: 13px; margin-top: 6px;
+      background: var(--green); color: #fff; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      gap: 8px; transition: background 0.18s, transform 0.1s;
+    }
+    .btn-signin:hover { background: var(--green-hover); }
+    .btn-signin:active { transform: scale(0.98); }
+    .btn-signin:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-signin svg { width: 17px; height: 17px; }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1a2e1c; color: #fff; padding: 11px 20px; border-radius: 10px;
+      font-size: 13.5px; font-weight: 500; opacity: 0;
+      transition: opacity 0.25s, transform 0.25s; pointer-events: none; z-index: 999;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.error { background: var(--red); }
+    .toast.success { background: #2d7a3a; }
+
+    .sms-panel { display: none; }
+    .email-panel { display: block; }
+    .email-panel.hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="lang-switcher">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    EN
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="card">
+    <div class="brand">
+      <div class="logo-icon">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="10" r="4" fill="white"/>
+          <circle cx="21" cy="10" r="4" fill="white" opacity="0.75"/>
+          <path d="M2 26c0-5 4-8 9-8s9 3 9 8" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+          <path d="M21 18c3.5 0 7 2.2 7 6.5" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.75"/>
+        </svg>
+      </div>
+      <div class="brand-name">AI GramSetu</div>
+      <div class="brand-sub">Village Admin Portal</div>
+    </div>
+
+    <div class="toggle-group">
+      <button class="toggle-btn active" id="emailToggle" onclick="switchMethod('email')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        Email Login
+      </button>
+      <button class="toggle-btn" id="smsToggle" onclick="switchMethod('sms')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.61 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16z"/></svg>
+        SMS Login
+      </button>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="signinTab" onclick="switchTab('signin')">Sign In</button>
+      <button class="auth-tab" id="signupTab" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+
+    <!-- EMAIL SIGN IN -->
+    <div class="email-panel" id="emailSignin">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="ei-email" placeholder="admin@example.com" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="ei-pass" placeholder="Enter your password" />
+      </div>
+      <button class="btn-signin" id="btn-ei" onclick="handleEmailSignin()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Sign In
+      </button>
+    </div>
+
+    <!-- EMAIL SIGN UP -->
+    <div class="email-panel hidden" id="emailSignup">
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="eu-name" placeholder="Your full name" />
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="eu-email" placeholder="admin@example.com" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="eu-pass" placeholder="Create a password (min 6 chars)" />
+      </div>
+      <button class="btn-signin" id="btn-eu" onclick="handleEmailSignup()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        Create Account
+      </button>
+    </div>
+
+    <!-- SMS SIGN IN -->
+    <div class="sms-panel" id="smsSignin">
+      <div class="field">
+        <label>Mobile Number</label>
+        <input type="tel" id="si-phone" placeholder="+91 98765 43210" />
+      </div>
+      <button class="btn-signin" id="btn-si" onclick="handleSmsSignin()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.61 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16z"/></svg>
+        Send OTP
+      </button>
+    </div>
+
+    <!-- SMS SIGN UP -->
+    <div class="sms-panel" id="smsSignup">
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="su-name" placeholder="Your full name" />
+      </div>
+      <div class="field">
+        <label>Mobile Number</label>
+        <input type="tel" id="su-phone" placeholder="+91 98765 43210" />
+      </div>
+      <button class="btn-signin" id="btn-su" onclick="handleSmsSignup()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.61 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16z"/></svg>
+        Register & Send OTP
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ── Points to server.js running locally or via Tunnel ──────────────────────
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('api')) {
+      localStorage.setItem('API_BASE', urlParams.get('api').replace(/\/$/, ''));
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    const SERVER = localStorage.getItem('API_BASE') || 'http://localhost:3000';
+
+    // ── Toast ─────────────────────────────────────────────────────────────────
+    let toastTimer;
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show ' + type;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.className = 'toast', 3500);
+    }
+
+    // ── Disable button while waiting for server ───────────────────────────────
+    function setLoading(btnId, on) {
+      const b = document.getElementById(btnId);
+      if (b) b.disabled = on;
+    }
+
+    // ── Open app.html in this same tab (Back button won't return to login) ────
+    function launchApp(userName) {
+      showToast('Welcome, ' + userName + '! Opening portal…', 'success');
+      setTimeout(() => window.location.replace('app.html'), 900);
+    }
+
+    // ── Single helper for all fetch calls ────────────────────────────────────
+    async function api(endpoint, body) {
+      const res = await fetch(SERVER + endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      return res.json();
+    }
+
+    // ── Email Sign In ─────────────────────────────────────────────────────────
+    async function handleEmailSignin() {
+      const email = document.getElementById('ei-email').value.trim();
+      const pass  = document.getElementById('ei-pass').value;
+      if (!email || !pass) { showToast('Please fill in all fields.', 'error'); return; }
+
+      setLoading('btn-ei', true);
+      try {
+        const res = await api('/auth/signin', { email, password: pass, method: 'email' });
+        if (res.ok) launchApp(res.name);
+        else showToast(res.error, 'error');
+      } catch {
+        showToast('Cannot reach server — make sure server.js is running.', 'error');
+      }
+      setLoading('btn-ei', false);
+    }
+
+    // ── Email Sign Up ─────────────────────────────────────────────────────────
+    async function handleEmailSignup() {
+      const name  = document.getElementById('eu-name').value.trim();
+      const email = document.getElementById('eu-email').value.trim();
+      const pass  = document.getElementById('eu-pass').value;
+      if (!name || !email || !pass) { showToast('Please fill in all fields.', 'error'); return; }
+      if (pass.length < 6) { showToast('Password must be at least 6 characters.', 'error'); return; }
+
+      setLoading('btn-eu', true);
+      try {
+        const res = await api('/auth/signup', { name, email, password: pass, method: 'email' });
+        if (res.ok) launchApp(res.name);
+        else showToast(res.error, 'error');
+      } catch {
+        showToast('Cannot reach server — make sure server.js is running.', 'error');
+      }
+      setLoading('btn-eu', false);
+    }
+
+    // ── SMS Sign In ───────────────────────────────────────────────────────────
+    async function handleSmsSignin() {
+      const phone = document.getElementById('si-phone').value.trim();
+      if (!phone) { showToast('Please enter your mobile number.', 'error'); return; }
+
+      setLoading('btn-si', true);
+      try {
+        const res = await api('/auth/signin', { phone, method: 'sms' });
+        if (res.ok) {
+          showToast('OTP sent! (demo: auto-verified)', 'success');
+          setTimeout(() => launchApp(res.name), 1200);
+        } else showToast(res.error, 'error');
+      } catch {
+        showToast('Cannot reach server — make sure server.js is running.', 'error');
+      }
+      setLoading('btn-si', false);
+    }
+
+    // ── SMS Sign Up ───────────────────────────────────────────────────────────
+    async function handleSmsSignup() {
+      const name  = document.getElementById('su-name').value.trim();
+      const phone = document.getElementById('su-phone').value.trim();
+      if (!name || !phone) { showToast('Please fill in all fields.', 'error'); return; }
+
+      setLoading('btn-su', true);
+      try {
+        const res = await api('/auth/signup', { name, phone, method: 'sms' });
+        if (res.ok) {
+          showToast('OTP sent! (demo: auto-verified)', 'success');
+          setTimeout(() => launchApp(res.name), 1200);
+        } else showToast(res.error, 'error');
+      } catch {
+        showToast('Cannot reach server — make sure server.js is running.', 'error');
+      }
+      setLoading('btn-su', false);
+    }
+
+    // ── UI state ──────────────────────────────────────────────────────────────
+    let method = 'email';
+    let tab    = 'signin';
+
+    function updateUI() {
+      document.getElementById('emailToggle').classList.toggle('active', method === 'email');
+      document.getElementById('smsToggle').classList.toggle('active', method === 'sms');
+      document.getElementById('signinTab').classList.toggle('active', tab === 'signin');
+      document.getElementById('signupTab').classList.toggle('active', tab === 'signup');
+
+      ['emailSignin','emailSignup','smsSignin','smsSignup'].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.display = 'none';
+        el.classList.add('hidden');
+      });
+
+      const active = method + (tab === 'signin' ? 'Signin' : 'Signup');
+      const el = document.getElementById(active);
+      el.style.display = 'block';
+      el.classList.remove('hidden');
+    }
+
+    function switchMethod(m) { method = m; updateUI(); }
+    function switchTab(t)    { tab = t;    updateUI(); }
+  </script>
+</body>
+</html>

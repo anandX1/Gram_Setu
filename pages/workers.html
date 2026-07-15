@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Workers – AI GramSetu</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><svg viewBox="0 0 32 32" fill="none"><circle cx="11" cy="10" r="4" fill="white"/><circle cx="21" cy="10" r="4" fill="white" opacity="0.7"/><path d="M2 26c0-5 4-8 9-8s9 3 9 8" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M21 18c3.5 0 7 2.2 7 6.5" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.7"/></svg></div>
+    <div class="brand-text"><strong>AI GramSetu</strong><span>Village Admin Portal</span></div>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav"></nav>
+  <div class="sidebar-footer">
+    <div class="avatar">DE</div>
+    <div class="footer-info"><strong>Development User</strong><span>Postmaster</span></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><h1>Workers</h1><p>Register and manage village workers</p></div>
+    <div class="lang-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> EN</div>
+  </div>
+
+  <div class="content">
+    <!-- Stats -->
+    <div class="stats-grid-3">
+      <div class="stat-card"><div><div class="stat-label">Total Workers</div><div class="stat-value" id="statTotal">0</div></div><div class="stat-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">Available</div><div class="stat-value green" id="statAvail">0</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">On Job</div><div class="stat-value orange" id="statOnJob">0</div></div><div class="stat-icon orange"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div></div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search workers..." oninput="renderTable()"/>
+      <select class="filter-select" id="filterStatus" onchange="renderTable()">
+        <option value="">All Status</option>
+        <option>Available</option><option>Busy</option><option>On Leave</option>
+      </select>
+      <select class="filter-select" id="filterSkill" onchange="renderTable()">
+        <option value="">All Skills</option>
+        <option>Farming</option><option>Construction</option><option>Plumbing</option>
+        <option>Electrical</option><option>Carpentry</option><option>Driving</option>
+        <option>Cooking</option><option>Teaching</option><option>Other</option>
+      </select>
+      <button class="btn-green" onclick="openModal()">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Worker
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-header">
+        <h3><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Workers <span id="workerCount" style="font-weight:400;color:var(--text-muted);font-size:13px;">(0)</span></h3>
+      </div>
+      <div class="table-head-row" style="grid-template-columns:2fr 1.5fr 1.2fr 1fr 1.2fr 1.5fr;">
+        <span>Worker Name</span><span>Phone Number</span><span>Skills</span><span>Experience</span><span>Availability</span><span>Actions</span>
+      </div>
+      <div id="tableBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Worker Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">Add New Worker <button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="field"><label>Full Name</label><input id="mName" placeholder="Enter worker name"/></div>
+    <div class="field"><label>Phone Number</label><input id="mPhone" placeholder="+91XXXXXXXXXX"/></div>
+    <div class="field"><label>Primary Skill</label>
+      <select id="mSkill"><option value="">Select skill</option><option>Farming</option><option>Construction</option><option>Plumbing</option><option>Electrical</option><option>Carpentry</option><option>Driving</option><option>Cooking</option><option>Teaching</option><option>Other</option></select>
+    </div>
+    <div class="field"><label>Experience (Years)</label><input id="mExp" type="number" value="0" min="0"/></div>
+    <div class="field"><label>Availability</label>
+      <select id="mAvail"><option>Available</option><option>Busy</option><option>On Leave</option></select>
+    </div>
+    <button class="btn-green" style="width:100%;justify-content:center;padding:11px;" onclick="saveWorker()">Register Worker</button>
+  </div>
+</div>
+
+<!-- Upskill AI Modal -->
+<div class="modal-overlay" id="upskillModal">
+  <div class="modal" style="max-width: 450px;">
+    <div class="modal-title" style="color:var(--blue); display:flex; align-items:center; gap:8px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      AI Micro-Upskill Pathway
+      <button class="modal-close" onclick="closeUpskillModal()" style="margin-left:auto;color:inherit;">×</button>
+    </div>
+    
+    <div id="upskillContent">
+      <div style="text-align:center; padding:20px;"><div class="spinner"></div><p>Generating custom learning path...</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../assets/js/main.js"></script>
+<script>
+  buildSidebar('workers');
+
+  function renderStats() {
+    const db = getDB(); const w = db.workers||[];
+    document.getElementById('statTotal').textContent = w.length;
+    document.getElementById('statAvail').textContent = w.filter(x=>x.availability==='Available').length;
+    document.getElementById('statOnJob').textContent = w.filter(x=>x.availability==='Busy').length;
+  }
+
+  function renderTable() {
+    const db = getDB(); let w = db.workers||[];
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const st = document.getElementById('filterStatus').value;
+    const sk = document.getElementById('filterSkill').value;
+    if(q) w = w.filter(x=>x.name.toLowerCase().includes(q)||x.phone.includes(q));
+    if(st) w = w.filter(x=>x.availability===st);
+    if(sk) w = w.filter(x=>x.skill===sk);
+    document.getElementById('workerCount').textContent = `(${w.length})`;
+    const body = document.getElementById('tableBody');
+    if(!w.length) { body.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><p>No workers registered yet</p></div>`; return; }
+    body.innerHTML = w.map((x,i)=>`
+      <div class="table-row" style="grid-template-columns:2fr 1.5fr 1.2fr 1fr 1.2fr 1.5fr;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="avatar" style="width:30px;height:30px;font-size:11px;">${getInitials(x.name)}</div>
+          <strong style="font-size:13.5px;">${x.name}</strong>
+        </div>
+        <span style="font-size:13px;color:var(--text-label);">${x.phone}</span>
+        <span style="font-size:13px;">${x.skill}</span>
+        <span style="font-size:13px;">${x.experience} yr</span>
+        <span class="badge ${x.availability==='Available'?'badge-green':x.availability==='Busy'?'badge-orange':'badge-gray'}">${x.availability}</span>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn-green" style="padding:4px 8px; font-size:11.5px;" onclick="openUpskillModal(${x.id}, '${x.name}', '${x.skill}', '${x.phone}')">Upskill AI</button>
+          <button onclick="deleteWorker(${x.id})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Delete</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function openModal() { document.getElementById('modal').classList.add('open'); }
+  function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+  function saveWorker() {
+    const name=document.getElementById('mName').value.trim();
+    const phone=document.getElementById('mPhone').value.trim();
+    const skill=document.getElementById('mSkill').value;
+    if(!name||!phone||!skill){showToast('Fill Name, Phone & Skill','error');return;}
+    const db=getDB();
+    db.workers.unshift({id:Date.now(),name,phone,skill,experience:parseInt(document.getElementById('mExp').value)||0,availability:document.getElementById('mAvail').value,registeredAt:new Date().toISOString()});
+    saveDB(db); closeModal();
+    document.getElementById('mName').value=''; document.getElementById('mPhone').value=''; document.getElementById('mSkill').value=''; document.getElementById('mExp').value='0';
+    showToast('✅ Worker registered!'); renderStats(); renderTable();
+  }
+
+  function deleteWorker(id) {
+    if(!confirm('Delete this worker?'))return;
+    const db=getDB(); db.workers=db.workers.filter(w=>w.id!==id); saveDB(db);
+    showToast('Worker deleted'); renderStats(); renderTable();
+  }
+
+  // --- AI Micro-Upskilling ---
+  function closeUpskillModal() { document.getElementById('upskillModal').classList.remove('open'); }
+  
+  async function openUpskillModal(workerId, name, skill, phone) {
+    const modal = document.getElementById('upskillModal');
+    const content = document.getElementById('upskillContent');
+    modal.classList.add('open');
+    content.innerHTML = '<div style="text-align:center; padding:20px;">Generating custom learning path for ' + name + '...</div>';
+    
+    try {
+      const res = await fetch(`${localStorage.getItem('API_BASE') || 'http://localhost:3000'}/api/upskill/recommend`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workerId, currentSkill: skill })
+      });
+      const data = await res.json();
+      if (!data.ok) { content.innerHTML = `<p style="color:red;padding:20px;">Error: ${data.error}</p>`; return; }
+      
+      const p = data.pathway;
+      let modulesHtml = p.modules.map((m, i) => `
+        <div style="background:var(--input-bg); border-radius:8px; padding:10px 12px; margin-bottom:8px; font-size:13px; display:flex; align-items:flex-start; gap:8px;">
+          <div style="background:var(--blue); color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0;">${i+1}</div>
+          <div>${m}</div>
+        </div>
+      `).join('');
+
+      content.innerHTML = `
+        <div style="margin-bottom:16px;">
+          <div style="font-size:13px; color:var(--text-muted);">Current Skill</div>
+          <div style="font-size:15px; font-weight:600;">${skill}</div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:13px; color:var(--text-muted);">AI Recommended Target Skill</div>
+          <div style="font-size:16px; font-weight:700; color:var(--green);">${p.targetSkill}</div>
+          <div style="font-size:12px; color:var(--orange); font-weight:bold; margin-top:4px;">Projected Impact: ${p.wageIncrease}</div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:13px; font-weight:600; margin-bottom:8px;">Curriculum (via IVR/Audio):</div>
+          ${modulesHtml}
+        </div>
+        <button class="btn-green" style="width:100%; justify-content:center;" onclick="sendUpskillSMS('${phone}', '${p.targetSkill}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="margin-right:6px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Send Course Links via SMS
+        </button>
+      `;
+    } catch (e) {
+      content.innerHTML = `<p style="color:red;padding:20px;">Cannot connect to AI server.</p>`;
+    }
+  }
+
+  async function sendUpskillSMS(phone, targetSkill) {
+    if (!phone) { showToast('Worker does not have a phone number.', 'error'); return; }
+    showToast('Sending SMS...');
+    try {
+      const msg = `AI GramSetu: Boost your daily wage! Tap here to start your free 15-min audio course on ${targetSkill}.`;
+      await fetch(`${localStorage.getItem('API_BASE') || 'http://localhost:3000'}/api/broadcast/sms`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, message: msg })
+      });
+      showToast(`✅ SMS sent successfully to ${phone}!`);
+      closeUpskillModal();
+    } catch (e) {
+      showToast('❌ Failed to send SMS', 'error');
+    }
+  }
+
+  renderStats(); renderTable();
+</script>
+</body>
+</html>

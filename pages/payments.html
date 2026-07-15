@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Payments – AI GramSetu</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><svg viewBox="0 0 32 32" fill="none"><circle cx="11" cy="10" r="4" fill="white"/><circle cx="21" cy="10" r="4" fill="white" opacity="0.7"/><path d="M2 26c0-5 4-8 9-8s9 3 9 8" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M21 18c3.5 0 7 2.2 7 6.5" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.7"/></svg></div>
+    <div class="brand-text"><strong>AI GramSetu</strong><span>Village Admin Portal</span></div>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav"></nav>
+  <div class="sidebar-footer">
+    <div class="avatar">DE</div>
+    <div class="footer-info"><strong>Development User</strong><span>Postmaster</span></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><h1>Payments</h1><p>Manage worker payments</p></div>
+    <div class="lang-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> EN</div>
+  </div>
+
+  <div class="content">
+    <div class="page-heading"><h2>Payment Management</h2><p>Manage worker payments and financial transactions</p></div>
+
+    <div class="stats-grid-4">
+      <div class="stat-card"><div><div class="stat-label">Total Paid</div><div class="stat-value green" id="sTotalPaid">₹0</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/><circle cx="12" cy="12" r="10"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">Pending Payments</div><div class="stat-value orange" id="sPending">₹0</div></div><div class="stat-icon orange"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">This Month</div><div class="stat-value green" id="sThisMonth">₹0</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">Workers Paid</div><div class="stat-value" id="sWorkersPaid">0</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-group">
+      <button class="tab-btn active" onclick="switchTab('payments',this)">Payments</button>
+      <button class="tab-btn" onclick="switchTab('pending',this)">Pending</button>
+      <button class="tab-btn" onclick="switchTab('analytics',this)">Analytics</button>
+    </div>
+
+    <!-- Search row -->
+    <div class="search-bar" style="margin-bottom:16px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search by worker or job..." oninput="render()"/>
+      <select class="filter-select" id="filterStatus" onchange="render()">
+        <option value="">All Status</option><option>Paid</option><option>Pending</option><option>Failed</option>
+      </select>
+      <select class="filter-select" id="filterPeriod" onchange="render()">
+        <option value="month">This Month</option><option value="all">All Time</option>
+      </select>
+      <button class="btn-green" onclick="openModal()">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Payment
+      </button>
+    </div>
+
+    <!-- Payments Table -->
+    <div id="tab-payments">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>Payment Records</h3>
+          <button class="btn-outline" onclick="exportPayments()">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+          </button>
+        </div>
+        <div class="table-head-row" style="grid-template-columns:2fr 1.5fr 1fr 1fr 1fr 1fr 1fr;">
+          <span>Worker</span><span>Job</span><span>Amount</span><span>Method</span><span>Date</span><span>Status</span><span>Actions</span>
+        </div>
+        <div id="paymentsList"></div>
+      </div>
+    </div>
+
+    <!-- Pending Tab -->
+    <div id="tab-pending" style="display:none;">
+      <div class="table-card">
+        <div class="table-header"><h3>Pending Payments</h3></div>
+        <div class="table-head-row" style="grid-template-columns:2fr 1.5fr 1fr 1fr 1fr;">
+          <span>Worker</span><span>Job</span><span>Amount</span><span>Due Date</span><span>Actions</span>
+        </div>
+        <div id="pendingList"></div>
+      </div>
+    </div>
+
+    <!-- Analytics Tab -->
+    <div id="tab-analytics" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="card"><div class="card-title">Payment by Method</div><div id="methodChart"></div></div>
+        <div class="card"><div class="card-title">Monthly Summary</div><div id="monthChart"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Payment Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">New Payment <button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="field"><label>Worker</label><select id="mWorker"><option value="">Select worker</option></select></div>
+    <div class="field"><label>Job / Description</label><select id="mJob"><option value="">Select job or type description</option></select></div>
+    <div class="field"><label>Amount (₹)</label><input id="mAmount" type="number" placeholder="0" min="0"/></div>
+    <div class="field"><label>Payment Method</label>
+      <select id="mMethod"><option>Cash</option><option>Bank Transfer</option><option>UPI</option><option>Cheque</option></select>
+    </div>
+    <div class="field"><label>Payment Date</label><input id="mDate" type="date"/></div>
+    <div class="field"><label>Status</label>
+      <select id="mStatus"><option>Paid</option><option>Pending</option></select>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="mNotes" rows="2" placeholder="Optional notes..."></textarea></div>
+    <button class="btn-green" style="width:100%;justify-content:center;padding:11px;" onclick="savePayment()">Record Payment</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="../assets/js/main.js"></script>
+<script>
+  buildSidebar('payments');
+
+  function switchTab(name, btn) {
+    ['payments','pending','analytics'].forEach(t => {
+      document.getElementById('tab-'+t).style.display = t===name?'block':'none';
+    });
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  }
+
+  function openModal() {
+    const db=getDB();
+    const ws=document.getElementById('mWorker');
+    ws.innerHTML='<option value="">Select worker</option>'+(db.workers||[]).map(w=>`<option>${w.name}</option>`).join('');
+    const js=document.getElementById('mJob');
+    js.innerHTML='<option value="">Select job</option>'+(db.jobs||[]).map(j=>`<option>${j.title}</option>`).join('');
+    document.getElementById('mDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('modal').classList.add('open');
+  }
+  function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+  function savePayment() {
+    const worker=document.getElementById('mWorker').value;
+    const amount=parseFloat(document.getElementById('mAmount').value);
+    if(!worker||!amount){showToast('Select worker and enter amount','error');return;}
+    const db=getDB(); if(!db.payments)db.payments=[];
+    db.payments.unshift({
+      id:Date.now(), worker, job:document.getElementById('mJob').value,
+      amount, method:document.getElementById('mMethod').value,
+      date:document.getElementById('mDate').value,
+      status:document.getElementById('mStatus').value,
+      notes:document.getElementById('mNotes').value,
+      createdAt:new Date().toISOString()
+    });
+    saveDB(db); closeModal(); showToast('✅ Payment recorded!'); render();
+  }
+
+  function markPaid(id) {
+    const db=getDB();
+    const p=db.payments.find(p=>p.id===id);
+    if(p){p.status='Paid'; saveDB(db); showToast('✅ Marked as paid!'); render();}
+  }
+
+  function deletePayment(id) {
+    if(!confirm('Delete payment?'))return;
+    const db=getDB(); db.payments=(db.payments||[]).filter(p=>p.id!==id); saveDB(db);
+    showToast('Deleted'); render();
+  }
+
+  function exportPayments(){showToast('📄 Export coming soon');}
+
+  function render() {
+    const db=getDB(); let payments=db.payments||[];
+    const q=document.getElementById('searchInput').value.toLowerCase();
+    const st=document.getElementById('filterStatus').value;
+    const period=document.getElementById('filterPeriod').value;
+    if(q) payments=payments.filter(p=>p.worker.toLowerCase().includes(q)||(p.job||'').toLowerCase().includes(q));
+    if(st) payments=payments.filter(p=>p.status===st);
+    if(period==='month') {
+      const now=new Date(); const m=now.getMonth(), y=now.getFullYear();
+      payments=payments.filter(p=>{ if(!p.date)return false; const d=new Date(p.date); return d.getMonth()===m&&d.getFullYear()===y; });
+    }
+
+    // Stats
+    const all=db.payments||[];
+    const totalPaid=all.filter(p=>p.status==='Paid').reduce((a,p)=>a+p.amount,0);
+    const totalPending=all.filter(p=>p.status==='Pending').reduce((a,p)=>a+p.amount,0);
+    const now=new Date(); const cm=now.getMonth(), cy=now.getFullYear();
+    const thisMonth=all.filter(p=>{ if(!p.date)return false; const d=new Date(p.date); return d.getMonth()===cm&&d.getFullYear()===cy; }).reduce((a,p)=>a+p.amount,0);
+    const workersPaid=new Set(all.filter(p=>p.status==='Paid').map(p=>p.worker)).size;
+    document.getElementById('sTotalPaid').textContent=fmtCurrency(totalPaid);
+    document.getElementById('sPending').textContent=fmtCurrency(totalPending);
+    document.getElementById('sThisMonth').textContent=fmtCurrency(thisMonth);
+    document.getElementById('sWorkersPaid').textContent=workersPaid;
+
+    // Payments list
+    const pl=document.getElementById('paymentsList');
+    const pending=payments.filter(p=>p.status==='Pending');
+    if(!payments.length){
+      pl.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><p>No payment records found</p></div>`;
+    } else {
+      pl.innerHTML=payments.map(p=>`
+        <div class="table-row" style="grid-template-columns:2fr 1.5fr 1fr 1fr 1fr 1fr 1fr;">
+          <div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="width:28px;height:28px;font-size:10px;">${getInitials(p.worker)}</div><strong style="font-size:13px;">${p.worker}</strong></div>
+          <span style="font-size:13px;">${p.job||'—'}</span>
+          <span style="font-size:13px;font-weight:600;color:var(--green);">${fmtCurrency(p.amount)}</span>
+          <span style="font-size:12px;">${p.method}</span>
+          <span style="font-size:12px;color:var(--text-muted);">${fmtDate(p.date)}</span>
+          <span class="badge ${p.status==='Paid'?'badge-green':p.status==='Pending'?'badge-orange':'badge-red'}">${p.status}</span>
+          <div style="display:flex;gap:6px;">
+            ${p.status==='Pending'?`<button onclick="markPaid(${p.id})" style="background:none;border:none;color:var(--green);cursor:pointer;font-size:12px;font-weight:600;">Pay</button>`:''}
+            <button onclick="deletePayment(${p.id})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;font-weight:600;">Del</button>
+          </div>
+        </div>`).join('');
+    }
+
+    // Pending list
+    const pndEl=document.getElementById('pendingList');
+    const pndPayments=all.filter(p=>p.status==='Pending');
+    if(!pndPayments.length){
+      pndEl.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><p>No pending payments 🎉</p></div>`;
+    } else {
+      pndEl.innerHTML=pndPayments.map(p=>`
+        <div class="table-row" style="grid-template-columns:2fr 1.5fr 1fr 1fr 1fr;">
+          <div style="display:flex;align-items:center;gap:8px;"><div class="avatar" style="width:28px;height:28px;font-size:10px;">${getInitials(p.worker)}</div><strong style="font-size:13px;">${p.worker}</strong></div>
+          <span style="font-size:13px;">${p.job||'—'}</span>
+          <span style="font-size:13px;font-weight:600;color:var(--orange);">${fmtCurrency(p.amount)}</span>
+          <span style="font-size:12px;color:var(--text-muted);">${fmtDate(p.date)}</span>
+          <button onclick="markPaid(${p.id})" class="btn-green" style="padding:5px 12px;font-size:12px;">Mark Paid</button>
+        </div>`).join('');
+    }
+
+    // Analytics
+    const methods={};
+    all.forEach(p=>{methods[p.method]=(methods[p.method]||0)+p.amount;});
+    const maxM=Math.max(...Object.values(methods),1);
+    document.getElementById('methodChart').innerHTML=Object.keys(methods).length
+      ? Object.entries(methods).map(([k,v])=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><span style="font-size:12.5px;width:110px;flex-shrink:0;">${k}</span><div style="flex:1;height:10px;background:var(--input-bg);border-radius:99px;overflow:hidden;"><div style="width:${Math.round(v/maxM*100)}%;height:100%;background:var(--green);border-radius:99px;"></div></div><span style="font-size:12px;color:var(--text-muted);width:70px;text-align:right;">${fmtCurrency(v)}</span></div>`).join('')
+      : '<p style="font-size:13px;color:var(--text-muted);">No data</p>';
+
+    // Monthly
+    const monthly={};
+    all.forEach(p=>{
+      if(!p.date)return;
+      const d=new Date(p.date);
+      const key=MONTHS[d.getMonth()].slice(0,3)+' '+d.getFullYear();
+      monthly[key]=(monthly[key]||0)+p.amount;
+    });
+    const maxMo=Math.max(...Object.values(monthly),1);
+    document.getElementById('monthChart').innerHTML=Object.keys(monthly).length
+      ? Object.entries(monthly).slice(-6).map(([k,v])=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><span style="font-size:12.5px;width:80px;flex-shrink:0;">${k}</span><div style="flex:1;height:10px;background:var(--input-bg);border-radius:99px;overflow:hidden;"><div style="width:${Math.round(v/maxMo*100)}%;height:100%;background:var(--green);border-radius:99px;"></div></div><span style="font-size:12px;color:var(--text-muted);width:70px;text-align:right;">${fmtCurrency(v)}</span></div>`).join('')
+      : '<p style="font-size:13px;color:var(--text-muted);">No data</p>';
+  }
+
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const API = localStorage.getItem('API_BASE') || 'http://localhost:3000';
+
+  // Sync completed employer jobs from server → auto-create pending payments
+  async function syncServerPayments() {
+    const db = getDB();
+    if (!db.payments) db.payments = [];
+    try {
+      const cachedEmployer = JSON.parse(localStorage.getItem('gramsetu_employer') || 'null');
+      if (!cachedEmployer) { render(); return; }
+      const r = await fetch(API + '/employer/jobs?employerId=' + cachedEmployer.id);
+      if (!r.ok) { render(); return; }
+      const { jobs } = await r.json();
+      (jobs || []).forEach(job => {
+        if (job.status !== 'Completed') return;
+        (job.workerDetails || []).forEach(w => {
+          const exists = db.payments.find(p => p._serverJobId === job.id && String(p._workerId) === String(w.id));
+          if (!exists) {
+            db.payments.push({
+              id: 'srv_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+              worker: w.name, job: job.title,
+              amount: parseFloat(job.payRate) || 0,
+              method: 'Cash',
+              date: job.completedAt ? job.completedAt.split('T')[0] : new Date().toISOString().split('T')[0],
+              status: 'Pending',
+              notes: 'Auto-generated from completed employer job',
+              createdAt: new Date().toISOString(),
+              _serverJobId: job.id, _workerId: w.id
+            });
+          }
+        });
+      });
+      saveDB(db);
+    } catch(e) { /* server offline — use local data only */ }
+    render();
+  }
+
+  syncServerPayments();
+</script>
+</body>
+</html>

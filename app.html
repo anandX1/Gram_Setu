@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>AI GramSetu – Village Admin Portal</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'DM Sans', sans-serif; background: #e8ede5; }
+
+    /* iframe fills the entire screen — the page inside provides its own sidebar + topbar */
+    #pageFrame {
+      width: 100%;
+      height: 100vh;
+      border: none;
+      display: block;
+    }
+
+    /* Loading overlay */
+    .loader {
+      position: fixed; inset: 0;
+      background: #e8ede5;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 12px; z-index: 999;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .loader.show { opacity: 1; pointer-events: all; }
+    .spinner {
+      width: 34px; height: 34px;
+      border: 3px solid #d8ddd5; border-top-color: #2d7a3a;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader span { font-size: 13px; color: #7a8f7c; font-weight: 500; font-family: 'DM Sans', sans-serif; }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <div class="loader" id="loader">
+    <div class="spinner"></div>
+    <span>Loading...</span>
+  </div>
+
+  <iframe id="pageFrame" src="pages/dashboard.html"></iframe>
+
+  <script>
+    const PAGES = {
+      dashboard:    'pages/dashboard.html',
+      workers:      'pages/workers.html',
+      jobs:         'pages/jobs.html',
+      sms:          'pages/sms.html',
+      reports:      'pages/reports.html',
+      feedback:     'pages/feedback.html',
+      training:     'pages/training.html',
+      attendance:   'pages/attendance.html',
+      payments:     'pages/payments.html',
+      'ml-insights':'pages/ml-insights.html',
+    };
+
+    const frame  = document.getElementById('pageFrame');
+    const loader = document.getElementById('loader');
+
+    // Show loader while page loads
+    loader.classList.add('show');
+
+    // Hide loader when iframe finishes loading
+    frame.addEventListener('load', () => {
+      loader.classList.remove('show');
+    });
+
+    // Global navigate function — called by nav links inside the iframe pages
+    // Each page's nav-item hrefs use relative paths like "../pages/workers.html"
+    // The iframe intercepts those naturally since they're just <a> tags.
+    // But if a page calls window.parent.navigate('workers'), this handles it too.
+    window.navigate = function(pageId) {
+      if (!PAGES[pageId]) return;
+      loader.classList.add('show');
+      frame.src = PAGES[pageId];
+      history.replaceState(null, '', '#' + pageId);
+    };
+
+    // Honour URL hash on first load (e.g. app.html#workers)
+    const hash = location.hash.replace('#', '');
+    if (hash && PAGES[hash]) {
+      frame.src = PAGES[hash];
+    }
+  </script>
+</body>
+</html>

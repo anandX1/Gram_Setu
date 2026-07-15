@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Feedback – AI GramSetu</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <style>
+    .star { font-size:18px; cursor:pointer; color:#ddd; transition:color 0.1s; }
+    .star.on { color:#f4c542; }
+    .feedback-item { background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:16px 18px; margin-bottom:12px; }
+    .feedback-meta { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .feedback-stars { color:#f4c542; font-size:13px; letter-spacing:1px; }
+    .feedback-msg { font-size:13.5px; color:var(--text-label); line-height:1.55; }
+    .feedback-from { font-size:12px; color:var(--text-muted); margin-top:6px; }
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><svg viewBox="0 0 32 32" fill="none"><circle cx="11" cy="10" r="4" fill="white"/><circle cx="21" cy="10" r="4" fill="white" opacity="0.7"/><path d="M2 26c0-5 4-8 9-8s9 3 9 8" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M21 18c3.5 0 7 2.2 7 6.5" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.7"/></svg></div>
+    <div class="brand-text"><strong>AI GramSetu</strong><span>Village Admin Portal</span></div>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav"></nav>
+  <div class="sidebar-footer">
+    <div class="avatar">DE</div>
+    <div class="footer-info"><strong>Development User</strong><span>Postmaster</span></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><h1>Feedback</h1><p>Worker and community feedback</p></div>
+    <div class="lang-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> EN</div>
+  </div>
+
+  <div class="content">
+    <div class="page-heading"><h2>Feedback Management</h2><p>Track worker satisfaction and improve service quality</p></div>
+
+    <div class="stats-grid-4">
+      <div class="stat-card"><div><div class="stat-label">Total Reviews</div><div class="stat-value" id="sTotal">0</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">Average Rating</div><div class="stat-value green" id="sAvg">0.0 <span style="font-size:18px;">⭐</span></div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">Positive Reviews</div><div class="stat-value green" id="sPos">0</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">Response Rate</div><div class="stat-value green">89%</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div></div>
+    </div>
+
+    <!-- Search + filters -->
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search feedback by message or worker name..." oninput="render()"/>
+      <select class="filter-select" id="filterStatus" onchange="render()">
+        <option value="">All Status</option><option>Pending</option><option>Reviewed</option>
+      </select>
+      <select class="filter-select" id="filterRating" onchange="render()">
+        <option value="">All Ratings</option><option value="5">5 ⭐</option><option value="4">4 ⭐</option><option value="3">3 ⭐</option><option value="2">2 ⭐</option><option value="1">1 ⭐</option>
+      </select>
+    </div>
+
+    <!-- Recent Feedback -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <div class="card-title" style="margin-bottom:0;">Recent Feedback</div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-green" onclick="openModal()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Feedback
+          </button>
+          <button class="btn-outline" onclick="exportFeedback()">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Export Report
+          </button>
+        </div>
+      </div>
+      <div id="feedbackList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Feedback Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">Add Feedback <button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="field"><label>Worker Name</label>
+      <select id="mWorker"><option value="">Select worker</option></select>
+    </div>
+    <div class="field"><label>Rating</label>
+      <div id="starRow" style="display:flex;gap:4px;margin-top:4px;">
+        <span class="star" data-v="1" onclick="setRating(1)">★</span>
+        <span class="star" data-v="2" onclick="setRating(2)">★</span>
+        <span class="star" data-v="3" onclick="setRating(3)">★</span>
+        <span class="star" data-v="4" onclick="setRating(4)">★</span>
+        <span class="star" data-v="5" onclick="setRating(5)">★</span>
+      </div>
+    </div>
+    <div class="field"><label>Message</label><textarea id="mMsg" rows="3" placeholder="Write feedback here..."></textarea></div>
+    <div class="field"><label>Status</label>
+      <select id="mStatus"><option>Pending</option><option>Reviewed</option></select>
+    </div>
+    <button class="btn-green" style="width:100%;justify-content:center;padding:11px;" onclick="saveFeedback()">Submit Feedback</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="../assets/js/main.js"></script>
+<script>
+  buildSidebar('feedback');
+  let currentRating = 0;
+
+  function setRating(v) {
+    currentRating = v;
+    document.querySelectorAll('.star').forEach(s => s.classList.toggle('on', +s.dataset.v <= v));
+  }
+
+  function openModal() {
+    const workers = getDB().workers||[];
+    const sel = document.getElementById('mWorker');
+    sel.innerHTML = '<option value="">Select worker</option>' + workers.map(w=>`<option value="${w.name}">${w.name}</option>`).join('');
+    currentRating = 0;
+    document.querySelectorAll('.star').forEach(s=>s.classList.remove('on'));
+    document.getElementById('modal').classList.add('open');
+  }
+  function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+  function saveFeedback() {
+    const worker = document.getElementById('mWorker').value;
+    const msg = document.getElementById('mMsg').value.trim();
+    if(!worker||!currentRating||!msg){showToast('Fill all fields','error');return;}
+    const db = getDB();
+    if(!db.feedback) db.feedback=[];
+    db.feedback.unshift({id:Date.now(),worker,rating:currentRating,message:msg,status:document.getElementById('mStatus').value,createdAt:new Date().toISOString()});
+    saveDB(db); closeModal(); document.getElementById('mMsg').value='';
+    showToast('✅ Feedback submitted!'); render();
+  }
+
+  function deleteFeedback(id) {
+    if(!confirm('Delete this feedback?'))return;
+    const db=getDB(); db.feedback=(db.feedback||[]).filter(f=>f.id!==id); saveDB(db);
+    showToast('Deleted'); render();
+  }
+
+  function exportFeedback() { showToast('📄 Export feature coming soon'); }
+
+  function render() {
+    const db = getDB(); let fb = db.feedback||[];
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const st = document.getElementById('filterStatus').value;
+    const rt = document.getElementById('filterRating').value;
+    if(q) fb = fb.filter(f=>f.message.toLowerCase().includes(q)||f.worker.toLowerCase().includes(q));
+    if(st) fb = fb.filter(f=>f.status===st);
+    if(rt) fb = fb.filter(f=>f.rating===+rt);
+
+    // Stats
+    const all = db.feedback||[];
+    document.getElementById('sTotal').textContent = all.length;
+    const avg = all.length ? (all.reduce((a,f)=>a+f.rating,0)/all.length).toFixed(1) : '0.0';
+    document.getElementById('sAvg').innerHTML = avg+' <span style="font-size:18px;">⭐</span>';
+    document.getElementById('sPos').textContent = all.filter(f=>f.rating>=4).length;
+
+    const list = document.getElementById('feedbackList');
+    if(!fb.length){list.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><p>No feedback available</p></div>`;return;}
+    list.innerHTML = fb.map(f=>`
+      <div class="feedback-item">
+        <div class="feedback-meta">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="avatar" style="width:30px;height:30px;font-size:11px;">${getInitials(f.worker)}</div>
+            <strong style="font-size:13.5px;">${f.worker}</strong>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="badge ${f.status==='Reviewed'?'badge-green':'badge-orange'}">${f.status}</span>
+            <button onclick="deleteFeedback(${f.id})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;">Delete</button>
+          </div>
+        </div>
+        <div class="feedback-stars">${'★'.repeat(f.rating)}${'☆'.repeat(5-f.rating)}</div>
+        <div class="feedback-msg">${f.message}</div>
+        <div class="feedback-from">${fmtDate(f.createdAt)}${f.jobTitle ? ' · <b>'+f.jobTitle+'</b>' : ''}${f.source ? ' <span style="background:var(--green-light);color:var(--green);font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:99px;">'+f.source+'</span>' : ''}</div>
+      </div>`).join('');
+  }
+
+  const API = localStorage.getItem('API_BASE') || 'http://localhost:3000';
+
+  // Pull employer reviews from server and merge into local feedback list
+  async function syncServerFeedback() {
+    const db = getDB();
+    if (!db.feedback) db.feedback = [];
+    try {
+      const cachedEmployer = JSON.parse(localStorage.getItem('gramsetu_employer') || 'null');
+      if (!cachedEmployer) { render(); return; }
+      const r = await fetch(API + '/employer/jobs?employerId=' + cachedEmployer.id);
+      if (!r.ok) { render(); return; }
+      const { jobs } = await r.json();
+      (jobs || []).forEach(job => {
+        (job.reviews || []).forEach(rev => {
+          const exists = db.feedback.find(f => f._serverRevId === (job.id + '_' + rev.workerId));
+          if (!exists) {
+            db.feedback.unshift({
+              id: 'srv_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+              worker: rev.workerName || 'Unknown',
+              rating: rev.rating,
+              message: rev.feedback || '(No written feedback)',
+              status: 'Reviewed',
+              source: 'Employer Portal',
+              jobTitle: job.title,
+              createdAt: rev.createdAt || job.completedAt || new Date().toISOString(),
+              _serverRevId: job.id + '_' + rev.workerId
+            });
+          }
+        });
+      });
+      saveDB(db);
+    } catch(e) { /* server offline — use local only */ }
+    render();
+  }
+
+  syncServerFeedback();
+</script>
+</body>
+</html>

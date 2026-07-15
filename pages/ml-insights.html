@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>ML Insights – AI GramSetu</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <style>
+    .model-card { background:var(--card-bg); border:1px solid var(--border); border-radius:16px; padding:24px; position:relative; box-shadow:var(--shadow-sm); transition:transform 0.2s, box-shadow 0.2s, border-color 0.2s; z-index: 1; }
+    .model-card:hover { transform:translateY(-4px); box-shadow:var(--glow-green); border-color: rgba(16, 185, 129, 0.4); z-index: 10; }
+    .model-card.active-panel { z-index: 100; }
+    .model-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:24px; margin-bottom:16px; }
+    .model-icon-wrap { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
+    .model-icon-wrap.blue   { background:rgba(59, 130, 246, 0.15); }
+    .model-icon-wrap.green  { background:rgba(16, 185, 129, 0.15); }
+    .model-icon-wrap.purple { background:rgba(168, 85, 247, 0.15); }
+    .model-icon-wrap.orange { background:rgba(245, 158, 11, 0.15); }
+    .model-icon-wrap svg { width:22px; height:22px; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .model-icon-wrap.blue   svg { stroke:var(--blue); }
+    .model-icon-wrap.green  svg { stroke:var(--green); }
+    .model-icon-wrap.purple svg { stroke:#a855f7; }
+    .model-icon-wrap.orange svg { stroke:var(--orange); }
+
+    .accuracy-badge { font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; background:var(--green); color:#fff; float:right; }
+    .accuracy-badge.untrained { background:#aaa; }
+
+    .model-name  { font-size:15px; font-weight:700; margin-bottom:4px; }
+    .model-desc  { font-size:12px; color:var(--text-muted); margin-bottom:14px; line-height:1.5; }
+    .model-perf-label { display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px; }
+    .model-footer { display:flex; gap:8px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
+
+    /* CSV status pill on each card */
+    .csv-pill { font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:20px; display:inline-flex; align-items:center; gap:4px; margin-bottom:10px; }
+    .csv-pill.ready   { background:#e6f4ea; color:#2d7a3a; }
+    .csv-pill.missing { background:#fff3e0; color:#e67e22; }
+
+    .prediction-item { background:var(--input-bg); border-radius:10px; padding:14px 16px; margin-bottom:10px; }
+    .prediction-item h4 { font-size:13.5px; font-weight:600; margin-bottom:4px; }
+    .prediction-item p  { font-size:12.5px; color:var(--text-muted); line-height:1.5; }
+
+    .insight-card { background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:10px; display:flex; align-items:flex-start; gap:12px; }
+    .insight-icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .insight-icon.green  { background:rgba(16, 185, 129, 0.15); }
+    .insight-icon.blue   { background:rgba(59, 130, 246, 0.15); }
+    .insight-icon.orange { background:rgba(245, 158, 11, 0.15); }
+    .insight-icon svg { width:16px; height:16px; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .insight-icon.green  svg { stroke:var(--green); }
+    .insight-icon.blue   svg { stroke:var(--blue); }
+    .insight-icon.orange svg { stroke:var(--orange); }
+
+    /* Predict panel inside each card */
+    .predict-panel { 
+      margin-top: 15px;
+      background: var(--card-bg); border: 1px solid var(--green); border-radius: 12px;
+      padding: 16px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+      display: none; opacity: 0; transform: translateY(-10px); transition: all 0.2s;
+    }
+    .predict-panel.open { display: block; opacity: 1; transform: translateY(0); }
+    .predict-panel .field { margin-bottom:10px; }
+    .predict-panel label { font-size:12px; font-weight:600; color:var(--text-label); display:block; margin-bottom:4px; }
+    .predict-panel input,
+    .predict-panel select { width:100%; padding:8px 10px; background:var(--input-bg); border:1.5px solid transparent; border-radius:8px; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text-dark); outline:none; }
+    .predict-panel input:focus,
+    .predict-panel select:focus { border-color:var(--green); }
+    .predict-result { margin-top:10px; background:var(--input-bg); border-radius:8px; padding:10px 12px; font-size:13px; line-height:1.6; display:none; }
+    .predict-result.show { display:block; }
+    .predict-result .val { font-weight:700; color:var(--green); }
+    .predict-result .val.red { color:#c0392b; }
+
+    /* Train All button */
+    .btn-train-all { display:flex; align-items:center; gap:8px; }
+
+    /* Server status bar */
+    .server-bar { display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:500; padding:8px 14px; border-radius:8px; margin-bottom:16px; }
+    .server-bar.online  { background:rgba(16, 185, 129, 0.1); color:var(--green); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .server-bar.offline { background:rgba(245, 158, 11, 0.1); color:var(--orange); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .server-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .server-bar.online  .server-dot { background:var(--green); box-shadow: 0 0 8px var(--green); }
+    .server-bar.offline .server-dot { background:var(--orange); box-shadow: 0 0 8px var(--orange); }
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><svg viewBox="0 0 32 32" fill="none"><circle cx="11" cy="10" r="4" fill="white"/><circle cx="21" cy="10" r="4" fill="white" opacity="0.7"/><path d="M2 26c0-5 4-8 9-8s9 3 9 8" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M21 18c3.5 0 7 2.2 7 6.5" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.7"/></svg></div>
+    <div class="brand-text"><strong>AI GramSetu</strong><span>Village Admin Portal</span></div>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav"></nav>
+  <div class="sidebar-footer">
+    <div class="avatar">DE</div>
+    <div class="footer-info"><strong>Development User</strong><span>Postmaster</span></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><h1>ML Insights</h1><p>AI-powered workforce predictions</p></div>
+    <div class="lang-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> EN</div>
+  </div>
+
+  <div class="content">
+    <div class="page-heading"><h2>ML Predictions & Analytics</h2><p>AI-powered insights for better labor management decisions</p></div>
+
+    <!-- Server status bar -->
+    <div class="server-bar offline" id="serverBar">
+      <div class="server-dot"></div>
+      <span id="serverBarText">Checking ML server…</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid-4">
+      <div class="stat-card"><div><div class="stat-label">Active Models</div><div class="stat-value" id="sActiveModels">—</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="4"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">Avg Accuracy</div><div class="stat-value green" id="sAvgAcc">—</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">Predictions Today</div><div class="stat-value green" id="sPredToday">0</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">Model Health</div><div class="stat-value green" id="sHealth">—</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-group" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <div style="display:flex;gap:6px;">
+        <button class="tab-btn active" onclick="switchTab('models',this)">Models</button>
+        <button class="tab-btn" onclick="switchTab('predictions',this)">Predictions</button>
+        <button class="tab-btn" onclick="switchTab('insights',this)">Insights</button>
+        <button class="tab-btn" onclick="switchTab('training',this)">Training</button>
+      </div>
+      <button class="btn-green btn-train-all" onclick="trainAll()" id="btnTrainAll">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Train All Models
+      </button>
+    </div>
+
+    <!-- ── MODELS TAB ─────────────────────────────────────────────────────── -->
+    <div id="tab-models">
+      <div class="model-grid">
+
+        <!-- Job Demand -->
+        <div class="model-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="model-icon-wrap blue"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+            <span class="accuracy-badge untrained" id="badge-demand">Not trained</span>
+          </div>
+          <div><span class="csv-pill missing" id="csv-demand">⏳ CSV not found</span></div>
+          <div class="model-name">Job Demand</div>
+          <div class="model-desc">Predict future job requirements based on historical village data</div>
+          <div class="model-perf-label"><span>Model Performance</span><span id="perf-demand">—</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-demand" style="width:0%"></div></div>
+          <div class="model-footer">
+            <button class="btn-outline" style="flex:1;justify-content:center;" onclick="togglePredict('demand')">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Try Predict
+            </button>
+            <button class="btn-green" style="flex:1;justify-content:center;" onclick="retrainModel('demand')" id="retrain-demand">
+              <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Retrain
+            </button>
+          </div>
+          <div class="predict-panel" id="predict-demand">
+            <div class="field"><label>Month (1–12)</label><input type="number" id="d-month" min="1" max="12" value="6"/></div>
+            <div class="field"><label>Season</label>
+              <select id="d-season"><option>Summer</option><option>Monsoon</option><option>Winter</option><option>Spring</option></select>
+            </div>
+            <div class="field"><label>Job Type</label><input type="text" id="d-jobtype" value="Agriculture"/></div>
+            <div class="field"><label>Village Population</label><input type="number" id="d-pop" value="500"/></div>
+            <div class="field"><label>Exp. Temp (°C)</label><input type="number" id="d-temp" value="35"/></div>
+            <div class="field"><label>Exp. Rain (mm)</label><input type="number" id="d-precip" value="10"/></div>
+            <button class="btn-green" style="width:100%;justify-content:center;" onclick="runPredict('demand')">Run Prediction</button>
+            <div class="predict-result" id="result-demand"></div>
+          </div>
+        </div>
+
+        <!-- Worker Availability -->
+        <div class="model-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="model-icon-wrap green"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <span class="accuracy-badge untrained" id="badge-availability">Not trained</span>
+          </div>
+          <div><span class="csv-pill missing" id="csv-availability">⏳ CSV not found</span></div>
+          <div class="model-name">Worker Availability</div>
+          <div class="model-desc">Forecast whether a worker will be available in coming days</div>
+          <div class="model-perf-label"><span>Model Performance</span><span id="perf-availability">—</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-availability" style="width:0%"></div></div>
+          <div class="model-footer">
+            <button class="btn-outline" style="flex:1;justify-content:center;" onclick="togglePredict('availability')">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Try Predict
+            </button>
+            <button class="btn-green" style="flex:1;justify-content:center;" onclick="retrainModel('availability')" id="retrain-availability">
+              <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Retrain
+            </button>
+          </div>
+          <div class="predict-panel" id="predict-availability">
+            <div class="field"><label>Skill</label><input type="text" id="a-skill" value="Farmer"/></div>
+            <div class="field"><label>Experience (years)</label><input type="number" id="a-exp" value="3"/></div>
+            <div class="field"><label>Day of Week (1=Mon…7=Sun)</label><input type="number" id="a-dow" min="1" max="7" value="1"/></div>
+            <div class="field"><label>Season</label>
+              <select id="a-season"><option>Summer</option><option>Monsoon</option><option>Winter</option><option>Spring</option></select>
+            </div>
+            <div class="field"><label>Days Since Last Job</label><input type="number" id="a-lastjob" value="7"/></div>
+            <button class="btn-green" style="width:100%;justify-content:center;" onclick="runPredict('availability')">Run Prediction</button>
+            <div class="predict-result" id="result-availability"></div>
+          </div>
+        </div>
+
+        <!-- Skill Matching -->
+        <div class="model-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="model-icon-wrap purple"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <span class="accuracy-badge untrained" id="badge-skill">Not trained</span>
+          </div>
+          <div><span class="csv-pill missing" id="csv-skill">⏳ CSV not found</span></div>
+          <div class="model-name">Skill Matching</div>
+          <div class="model-desc">Score how well a worker matches a job's skill requirements</div>
+          <div class="model-perf-label"><span>Model Performance</span><span id="perf-skill">—</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-skill" style="width:0%"></div></div>
+          <div class="model-footer">
+            <button class="btn-outline" style="flex:1;justify-content:center;" onclick="togglePredict('skill')">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Try Predict
+            </button>
+            <button class="btn-green" style="flex:1;justify-content:center;" onclick="retrainModel('skill')" id="retrain-skill">
+              <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Retrain
+            </button>
+          </div>
+          <div class="predict-panel" id="predict-skill">
+            <div class="field"><label>Required Skill</label><input type="text" id="s-reqskill" value="Farmer"/></div>
+            <div class="field"><label>Experience Needed (years)</label><input type="number" id="s-expneeded" value="2"/></div>
+            <div class="field"><label>Worker Skill</label><input type="text" id="s-wskill" value="Farmer"/></div>
+            <div class="field"><label>Worker Experience (years)</label><input type="number" id="s-wexp" value="3"/></div>
+            <div class="field"><label>Worker Distance (km)</label><input type="number" id="s-dist" value="5"/></div>
+            <button class="btn-green" style="width:100%;justify-content:center;" onclick="runPredict('skill')">Run Prediction</button>
+            <div class="predict-result" id="result-skill"></div>
+          </div>
+        </div>
+
+        <!-- Attendance Predictor -->
+        <div class="model-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="model-icon-wrap orange"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <span class="accuracy-badge untrained" id="badge-attendance">Not trained</span>
+          </div>
+          <div><span class="csv-pill missing" id="csv-attendance">⏳ CSV not found</span></div>
+          <div class="model-name">Attendance Predictor</div>
+          <div class="model-desc">Predict attendance patterns and absenteeism risks</div>
+          <div class="model-perf-label"><span>Model Performance</span><span id="perf-attendance">—</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-attendance" style="width:0%"></div></div>
+          <div class="model-footer">
+            <button class="btn-outline" style="flex:1;justify-content:center;" onclick="togglePredict('attendance')">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              Try Predict
+            </button>
+            <button class="btn-green" style="flex:1;justify-content:center;" onclick="retrainModel('attendance')" id="retrain-attendance">
+              <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Retrain
+            </button>
+          </div>
+          <div class="predict-panel" id="predict-attendance">
+            <div class="field"><label>Job Role</label><input type="text" id="at-role" value="Farmer"/></div>
+            <div class="field"><label>Day of Week (1=Mon…7=Sun)</label><input type="number" id="at-dow" min="1" max="7" value="1"/></div>
+            <div class="field"><label>Leaves Taken (this month)</label><input type="number" id="at-leaves" value="2"/></div>
+            <div class="field"><label>Workload (0.0 – 1.0)</label><input type="number" id="at-workload" min="0" max="1" step="0.01" value="0.5"/></div>
+            <button class="btn-green" style="width:100%;justify-content:center;" onclick="runPredict('attendance')">Run Prediction</button>
+            <div class="predict-result" id="result-attendance"></div>
+          </div>
+        </div>
+        <!-- Fraud Detection -->
+        <div class="model-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="model-icon-wrap blue" style="background:#fce4ec;"><svg stroke="#d81b60" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <span class="accuracy-badge untrained" id="badge-fraud">Not trained</span>
+          </div>
+          <div><span class="csv-pill missing" id="csv-fraud">⏳ CSV not found</span></div>
+          <div class="model-name">Fraud Detection</div>
+          <div class="model-desc">Detect anomalous and fake employer job postings</div>
+          <div class="model-perf-label"><span>Model Performance</span><span id="perf-fraud">—</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-fraud" style="width:0%"></div></div>
+          <div class="model-footer">
+            <button class="btn-outline" style="flex:1;justify-content:center;" onclick="togglePredict('fraud')">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Try Predict
+            </button>
+            <button class="btn-green" style="flex:1;justify-content:center;" onclick="retrainModel('fraud')" id="retrain-fraud">
+              <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Retrain
+            </button>
+          </div>
+          <div class="predict-panel" id="predict-fraud">
+            <div class="field"><label>Jobs Posted (24h)</label><input type="number" id="f-jobs" value="20"/></div>
+            <div class="field"><label>Wage Offered (₹)</label><input type="number" id="f-wage" value="5000"/></div>
+            <div class="field"><label>Reports Against</label><input type="number" id="f-reports" value="2"/></div>
+            <button class="btn-green" style="width:100%;justify-content:center;" onclick="runPredict('fraud')">Run Prediction</button>
+            <div class="predict-result" id="result-fraud"></div>
+          </div>
+        </div>
+
+        <!-- Dynamic Wage Predictor -->
+        <div class="model-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div class="model-icon-wrap green" style="background:#e8f5e9;"><svg stroke="#2e7d32" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <span class="accuracy-badge untrained" id="badge-wage">Not trained</span>
+          </div>
+          <div><span class="csv-pill missing" id="csv-wage">⏳ CSV not found</span></div>
+          <div class="model-name">Dynamic Wage Predictor</div>
+          <div class="model-desc">Suggests fair daily wages based on PLFS and real-time data</div>
+          <div class="model-perf-label"><span>Model Performance</span><span id="perf-wage">—</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-wage" style="width:0%"></div></div>
+          <div class="model-footer">
+            <button class="btn-outline" style="flex:1;justify-content:center;" onclick="togglePredict('wage')">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Try Predict
+            </button>
+            <button class="btn-green" style="flex:1;justify-content:center;" onclick="retrainModel('wage')" id="retrain-wage">
+              <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Retrain
+            </button>
+          </div>
+          <div class="predict-panel" id="predict-wage">
+            <div class="field"><label>Month (1–12)</label><input type="number" id="w-month" min="1" max="12" value="6"/></div>
+            <div class="field"><label>Season</label><select id="w-season"><option>Summer</option><option>Monsoon</option><option>Winter</option><option>Spring</option></select></div>
+            <div class="field"><label>Job Type</label><input type="text" id="w-jobtype" value="Agriculture"/></div>
+            <div class="field"><label>Village Population</label><input type="number" id="w-pop" value="500"/></div>
+            <div class="field"><label>Active Jobs in Village</label><input type="number" id="w-numjobs" value="10"/></div>
+            <button class="btn-green" style="width:100%;justify-content:center;" onclick="runPredict('wage')">Run Prediction</button>
+            <div class="predict-result" id="result-wage"></div>
+          </div>
+        </div>
+
+      </div><!-- /model-grid -->
+    </div><!-- /tab-models -->
+
+    <!-- ── PREDICTIONS TAB ───────────────────────────────────────────────── -->
+    <div id="tab-predictions" style="display:none;">
+      <div class="card">
+        <div class="card-title">Live AI Predictions</div>
+        <div id="predictionsList"><div class="empty-state"><p>Loading predictions…</p></div></div>
+      </div>
+    </div>
+
+    <!-- ── INSIGHTS TAB ──────────────────────────────────────────────────── -->
+    <div id="tab-insights" style="display:none;">
+      <!-- Weather Forecasting Card -->
+      <div class="card" style="margin-bottom:20px; border-color:var(--blue);">
+        <div class="card-title" style="color:var(--blue); display:flex; align-items:center; gap:8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19c2.485 0 4.5-2.015 4.5-4.5S19.985 10 17.5 10c-.39 0-.766.053-1.12.15A7 7 0 1 0 4.29 14.5c0 2.485 2.015 4.5 4.5 4.5h8.71z"/></svg>
+          Weather-Driven Labor Forecast
+        </div>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+          Predict upcoming labor demand spikes based on weather forecasts. This allows Gram Pradhans to proactively mobilize workers before employers even post the jobs!
+        </p>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+          <div><label style="font-size:12px; font-weight:600;">Expected Temp (°C)</label><input type="number" id="wf-temp" value="35" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ccc;"/></div>
+          <div><label style="font-size:12px; font-weight:600;">Expected Rain (mm)</label><input type="number" id="wf-precip" value="60" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ccc;"/></div>
+          <div><label style="font-size:12px; font-weight:600;">Season</label>
+            <select id="wf-season" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ccc;">
+              <option>Summer</option><option selected>Monsoon</option><option>Winter</option><option>Spring</option>
+            </select>
+          </div>
+          <div><label style="font-size:12px; font-weight:600;">Month (1-12)</label><input type="number" id="wf-month" value="7" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ccc;"/></div>
+        </div>
+        <button class="btn-green" onclick="runWeatherForecast()">Generate AI Forecast</button>
+        
+        <div id="weatherForecastResult" style="margin-top:16px; display:none;">
+          <h4 style="font-size:14px; margin-bottom:8px;">Predicted High-Demand Sectors:</h4>
+          <ul id="weatherForecastList" style="list-style:none; padding:0; display:grid; gap:8px;"></ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">AI-Generated Insights</div>
+        <div id="insightsList"></div>
+      </div>
+    </div>
+
+    <!-- ── TRAINING TAB ──────────────────────────────────────────────────── -->
+    <div id="tab-training" style="display:none;">
+      <div class="card">
+        <div class="card-title">Model Training History</div>
+        <div id="trainingHistory"></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+<div class="toast" id="toast"></div>
+
+<script src="../assets/js/main.js"></script>
+<script>
+  buildSidebar('ml-insights');
+
+  const ML = (localStorage.getItem('API_BASE') || 'http://localhost:3000') + '/ml';
+  let predCount = 0;
+  let mlStatus  = {};  // populated from /ml/status
+
+  // ── Tab switching ──────────────────────────────────────────────────────────
+  function switchTab(name, btn) {
+    ['models','predictions','insights','training'].forEach(t => {
+      document.getElementById('tab-'+t).style.display = t === name ? 'block' : 'none';
+    });
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (name === 'predictions') renderPredictions();
+    if (name === 'insights')    renderInsights();
+    if (name === 'training')    renderTrainingHistory();
+  }
+
+  // ── Toggle predict panel on a card ────────────────────────────────────────
+  function togglePredict(model) {
+    const panel = document.getElementById('predict-' + model);
+    panel.classList.toggle('open');
+    panel.closest('.model-card').classList.toggle('active-panel');
+  }
+
+  // ── Fetch ML server status and update all cards ───────────────────────────
+  async function refreshStatus() {
+    try {
+      const res  = await fetch(ML + '/ml/status');
+      const data = await res.json();
+      if (!data.ok) return;
+
+      mlStatus = data.models;
+
+      // Server bar
+      const bar = document.getElementById('serverBar');
+      bar.className = 'server-bar online';
+      document.getElementById('serverBarText').textContent = 'ML server is online — ' + ML;
+
+      // Update each model card
+      let trainedCount = 0;
+      let accSum = 0;
+
+      Object.entries(data.models).forEach(([key, m]) => {
+        // CSV pill
+        const csvPill = document.getElementById('csv-' + key);
+        if (csvPill) {
+          csvPill.className = 'csv-pill ' + (m.csv_ready ? 'ready' : 'missing');
+          csvPill.textContent = m.csv_ready ? '✓ CSV ready' : '⏳ CSV not found';
+        }
+
+        // Accuracy badge + bar
+        const badge = document.getElementById('badge-' + key);
+        const bar   = document.getElementById('bar-'   + key);
+        const perf  = document.getElementById('perf-'  + key);
+        if (m.trained && m.accuracy != null) {
+          let acc = parseFloat(m.accuracy);
+          if (acc < 0) acc = 0; // Fix for negative accuracy bug
+          if (badge) { badge.textContent = acc + '% accuracy'; badge.className = 'accuracy-badge'; }
+          if (bar)   { bar.style.width = acc + '%'; }
+          if (perf)  { perf.textContent = acc + '%'; }
+          trainedCount++;
+          accSum += acc;
+        } else {
+          if (badge) { badge.textContent = 'Not trained'; badge.className = 'accuracy-badge untrained'; }
+          if (bar)   { bar.style.width = '0%'; }
+          if (perf)  { perf.textContent = '—'; }
+        }
+      });
+
+      // Stats bar
+      document.getElementById('sActiveModels').textContent = trainedCount;
+      document.getElementById('sAvgAcc').textContent = trainedCount ? Math.round(accSum / trainedCount) + '%' : '—';
+      document.getElementById('sHealth').textContent  = trainedCount === 6 ? 'Good' : trainedCount > 0 ? 'Partial' : 'Untrained';
+
+    } catch {
+      const bar = document.getElementById('serverBar');
+      bar.className = 'server-bar offline';
+      document.getElementById('serverBarText').textContent = 'ML server offline — run: python ml_server.py';
+    }
+  }
+
+  // ── Retrain a single model ─────────────────────────────────────────────────
+  async function retrainModel(key) {
+    const btn = document.getElementById('retrain-' + key);
+    if (btn) { btn.disabled = true; btn.textContent = 'Training…'; }
+    showToast('Training ' + key + ' model…');
+    try {
+      const res  = await fetch(ML + '/ml/train/' + key, { method: 'POST' });
+      const data = await res.json();
+      if (data.ok) {
+        showToast('✅ ' + key + ' trained — ' + data.accuracy + '% accuracy');
+        await refreshStatus();
+        renderTrainingHistory();
+      } else {
+        showToast('❌ ' + (data.error || 'Training failed'), 'error');
+      }
+    } catch {
+      showToast('❌ Cannot reach ML server', 'error');
+    }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Retrain'; }
+  }
+
+  // ── Train all models at once ───────────────────────────────────────────────
+  async function trainAll() {
+    const btn = document.getElementById('btnTrainAll');
+    btn.disabled = true; btn.textContent = 'Training all…';
+    showToast('Training all 6 models…');
+    try {
+      const res  = await fetch(ML + '/ml/train/all', { method: 'POST' });
+      const data = await res.json();
+      let msg = '';
+      Object.entries(data.results).forEach(([key, r]) => {
+        msg += r.ok ? `✅ ${key}: ${r.accuracy}%  ` : `❌ ${key}: ${r.error}  `;
+      });
+      showToast(msg.trim());
+      await refreshStatus();
+      renderTrainingHistory();
+    } catch {
+      showToast('❌ Cannot reach ML server');
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Train All Models';
+  }
+
+  // ── Run a single prediction ────────────────────────────────────────────────
+  async function runPredict(model) {
+    const resultEl = document.getElementById('result-' + model);
+    resultEl.className = 'predict-result show';
+    resultEl.textContent = 'Running…';
+
+    let body = {};
+    if (model === 'attendance') {
+      body = {
+        job_role:     document.getElementById('at-role').value,
+        day_of_week:  document.getElementById('at-dow').value,
+        leaves_taken: document.getElementById('at-leaves').value,
+        workload:     document.getElementById('at-workload').value,
+      };
+    } else if (model === 'availability') {
+      body = {
+        skill:             document.getElementById('a-skill').value,
+        experience_years:  document.getElementById('a-exp').value,
+        day_of_week:       document.getElementById('a-dow').value,
+        season:            document.getElementById('a-season').value,
+        last_job_days_ago: document.getElementById('a-lastjob').value,
+      };
+      } else if (model === 'demand') {
+      body = {
+        month:              document.getElementById('d-month').value,
+        season:             document.getElementById('d-season').value,
+        job_type:           document.getElementById('d-jobtype').value,
+        village_population: document.getElementById('d-pop').value,
+        temperature:        document.getElementById('d-temp').value,
+        precipitation:      document.getElementById('d-precip').value,
+      };
+      } else if (model === 'skill') {
+      body = {
+        required_skill:    document.getElementById('s-reqskill').value,
+        experience_needed: document.getElementById('s-expneeded').value,
+        worker_skill:      document.getElementById('s-wskill').value,
+        worker_experience: document.getElementById('s-wexp').value,
+        worker_distance_km:document.getElementById('s-dist').value,
+      };
+    } else if (model === 'fraud') {
+      body = {
+        jobs_posted_24h: document.getElementById('f-jobs').value,
+        wage_offered:    document.getElementById('f-wage').value,
+        reports_against: document.getElementById('f-reports').value,
+      };
+    } else if (model === 'wage') {
+      body = {
+        month:              document.getElementById('w-month').value,
+        season:             document.getElementById('w-season').value,
+        job_type:           document.getElementById('w-jobtype').value,
+        village_population: document.getElementById('w-pop').value,
+        num_jobs_posted:    document.getElementById('w-numjobs').value,
+      };
+    }
+
+    try {
+      const res  = await fetch(ML + '/ml/predict/' + model, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!data.ok) { resultEl.textContent = '❌ ' + data.error; return; }
+
+      predCount++;
+      document.getElementById('sPredToday').textContent = predCount;
+
+      // Format result per model
+      let html = '';
+      if (model === 'attendance') {
+        const good = data.prediction.will_be_present;
+        html = `Worker will <span class="val ${good?'':'red'}">${good ? 'BE PRESENT ✓' : 'BE ABSENT ✗'}</span> — Probability: <span class="val">${data.prediction.probability}%</span>`;
+      } else if (model === 'availability') {
+        const good = data.prediction.will_be_available;
+        html = `Worker will <span class="val ${good?'':'red'}">${good ? 'BE AVAILABLE ✓' : 'NOT BE AVAILABLE ✗'}</span> — Probability: <span class="val">${data.prediction.probability}%</span>`;
+      } else if (model === 'demand') {
+        html = `Predicted jobs needed: <span class="val">${data.prediction.predicted_jobs}</span>`;
+      } else if (model === 'skill') {
+        const score = data.prediction.match_probability || 0;
+        const good = score > 50;
+        html = `Match result: <span class="val ${good?'':'red'}">${good ? 'GOOD MATCH ✓' : 'POOR MATCH ✗'}</span> — Score: <span class="val">${score}%</span>`;
+      } else if (model === 'fraud') {
+        const prob = data.prediction.fraud_probability || 0;
+        const bad = prob > 50;
+        html = `Fraud Risk: <span class="val ${bad?'red':''}">${bad ? 'HIGH RISK ✗' : 'LOW RISK ✓'}</span> — Probability: <span class="val">${prob}%</span>`;
+      } else if (model === 'wage') {
+        html = `Suggested Fair Daily Wage: <span class="val">₹${data.prediction.recommended_wage || 0}</span>`;
+      }
+      resultEl.innerHTML = html;
+    } catch {
+      resultEl.textContent = '❌ Cannot reach ML server';
+    }
+  }
+
+  // ── Weather Forecast ───────────────────────────────────────────────────────
+  async function runWeatherForecast() {
+    const listEl = document.getElementById('weatherForecastList');
+    document.getElementById('weatherForecastResult').style.display = 'block';
+    listEl.innerHTML = '<li>Predicting across 20+ sectors...</li>';
+    try {
+      const res = await fetch(ML + '/ml/predict/weather-forecast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          temperature: document.getElementById('wf-temp').value,
+          precipitation: document.getElementById('wf-precip').value,
+          season: document.getElementById('wf-season').value,
+          month: document.getElementById('wf-month').value,
+          village_population: 3000
+        })
+      });
+      const data = await res.json();
+      if (!data.ok) { listEl.innerHTML = '<li>Error: ' + data.error + '</li>'; return; }
+      
+      listEl.innerHTML = '';
+      data.forecast.slice(0, 5).forEach((f, i) => {
+        listEl.innerHTML += `<li style="background:var(--input-bg); padding:10px 14px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+          <div><strong style="color:var(--text-dark);">${i+1}. ${f.job_type}</strong></div>
+          <div style="background:var(--green); color:white; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:bold;">${f.predicted_demand} jobs predicted</div>
+        </li>`;
+      });
+    } catch {
+      listEl.innerHTML = '<li>❌ Cannot reach ML server</li>';
+    }
+  }
+
+  // ── Predictions tab ────────────────────────────────────────────────────────
+  async function renderPredictions() {
+    const el = document.getElementById('predictionsList');
+    el.innerHTML = '<div class="empty-state"><p>Loading…</p></div>';
+
+    const preds = [];
+
+    // Attendance batch prediction using default values
+    try {
+      const res = await fetch(ML + '/ml/predict/attendance', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ job_role:'Farmer', day_of_week: new Date().getDay()||1, leaves_taken:2, workload:0.5 })
+      });
+      const d = await res.json();
+      if (d.ok) preds.push({
+        title: 'Attendance Risk Today',
+        desc: `For a Farmer on day ${new Date().getDay()||1} with average workload — attendance probability is <strong>${d.prediction.probability}%</strong>. ${d.prediction.probability < 60 ? 'Consider sending reminder SMS.' : 'Attendance looks good today.'}`,
+        confidence: d.prediction.probability + '%', icon: 'orange'
+      });
+    } catch {}
+
+    // Demand prediction for current month
+    try {
+      const month = new Date().getMonth() + 1;
+      const seasons = ['','Winter','Winter','Spring','Spring','Spring','Summer','Summer','Monsoon','Monsoon','Monsoon','Winter','Winter'];
+      const res = await fetch(ML + '/ml/predict/demand', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ month, season: seasons[month], job_type:'Agriculture', village_population:500, prev_month_jobs:10 })
+      });
+      const d = await res.json();
+      if (d.ok) preds.push({
+        title: 'Job Demand Forecast',
+        desc: `AI predicts <strong>${d.prediction.predicted_jobs} Agriculture jobs</strong> needed this month based on seasonal patterns and village data.`,
+        confidence: '—', icon: 'blue'
+      });
+    } catch {}
+
+    // Availability
+    try {
+      const res = await fetch(ML + '/ml/predict/availability', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ skill:'Farmer', experience_years:3, day_of_week: new Date().getDay()||1, season:'Summer', last_job_days_ago:5 })
+      });
+      const d = await res.json();
+      if (d.ok) preds.push({
+        title: 'Worker Availability Forecast',
+        desc: `For a Farmer with 3 years experience — availability probability is <strong>${d.prediction.probability}%</strong>.`,
+        confidence: d.prediction.probability + '%', icon: 'green'
+      });
+    } catch {}
+
+    // Skill match
+    try {
+      const res = await fetch(ML + '/ml/predict/skill', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ required_skill:'Farmer', experience_needed:2, worker_skill:'Farmer', worker_experience:3, worker_distance_km:5 })
+      });
+      const d = await res.json();
+      if (d.ok) preds.push({
+        title: 'Skill Match Sample',
+        desc: `A Farmer worker with 3 years experience for a job needing 2 years — match score: <strong>${d.prediction.match_probability}%</strong>. ${d.prediction.match_probability > 50 ? 'Recommended ✓' : 'Consider other candidates.'}`,
+        confidence: d.prediction.match_probability + '%', icon: 'purple'
+      });
+    } catch {}
+
+    // Fraud Detection
+    try {
+      const res = await fetch(ML + '/ml/predict/fraud', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ jobs_posted_24h:20, wage_offered:5000, reports_against:2 })
+      });
+      const d = await res.json();
+      if (d.ok) preds.push({
+        title: 'Fraud Detection Scan',
+        desc: `An employer posted 20 jobs today offering ₹5000 with 2 reports. Fraud probability: <strong>${d.prediction.fraud_probability}%</strong>. ${d.prediction.fraud_probability > 50 ? 'Flagged for admin review.' : 'Looks normal.'}`,
+        confidence: d.prediction.fraud_probability + '%', icon: 'blue'
+      });
+    } catch {}
+
+    // Dynamic Wage Predictor
+    try {
+      const res = await fetch(ML + '/ml/predict/wage', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ month:6, season:'Monsoon', job_type:'Agriculture', village_population:500, num_jobs_posted:10 })
+      });
+      const d = await res.json();
+      if (d.ok) preds.push({
+        title: 'Dynamic Wage Suggestion',
+        desc: `For Agriculture in Monsoon with village pop 500 — suggested daily wage is <strong>₹${d.prediction.recommended_wage}</strong>.`,
+        confidence: '—', icon: 'orange'
+      });
+    } catch {}
+
+    if (!preds.length) {
+      el.innerHTML = `<div class="empty-state"><p>No predictions available. Train at least one model first.</p></div>`;
+      return;
+    }
+
+    el.innerHTML = preds.map(p => `
+      <div class="prediction-item">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <h4>${p.title}</h4>
+          ${p.confidence !== '—' ? `<span class="badge badge-green">Confidence: ${p.confidence}</span>` : ''}
+        </div>
+        <p>${p.desc}</p>
+      </div>`).join('');
+  }
+
+  // ── Insights tab ───────────────────────────────────────────────────────────
+  function renderInsights() {
+    const db = getDB();
+    const workers = db.workers || [];
+    const jobs    = db.jobs    || [];
+    const insights = [];
+
+    if (workers.length) {
+      const skills = {};
+      workers.forEach(w => { skills[w.skill] = (skills[w.skill] || 0) + 1; });
+      const top = Object.entries(skills).sort((a,b) => b[1]-a[1])[0];
+      if (top) insights.push({ icon:'green', title:'Top Skill', text:`${top[0]} is the most common skill with ${top[1]} worker(s). Consider creating more ${top[0]}-focused job postings.` });
+      insights.push({ icon:'blue', title:'Worker Growth', text:`You have ${workers.length} registered workers. Registering 5 more could increase job fulfillment rate by ~20%.` });
+    }
+    if (jobs.length) {
+      const avgPay = jobs.reduce((a,j) => a + j.payRate, 0) / jobs.length;
+      insights.push({ icon:'orange', title:'Pay Rate Insight', text:`Average pay rate is ₹${avgPay.toFixed(0)}/day. Workers with 5+ years experience typically expect ₹${(avgPay*1.4).toFixed(0)}+/day.` });
+    }
+
+    // Add ML model accuracy insights
+    Object.entries(mlStatus).forEach(([key, m]) => {
+      if (m.trained && m.accuracy != null) {
+        const acc = parseFloat(m.accuracy);
+        if (acc < 75) insights.push({ icon:'orange', title: m.label + ' Needs Improvement', text:`Model accuracy is ${acc}%. Consider adding more training data to improve predictions.` });
+        else insights.push({ icon:'green', title: m.label + ' Performing Well', text:`Model accuracy is ${acc}% — predictions are reliable for this model.` });
+      }
+    });
+
+    if (!insights.length) insights.push({ icon:'green', title:'Getting Started', text:'Train your models and register workers to receive AI-powered insights.' });
+
+    const el = document.getElementById('insightsList');
+    el.innerHTML = insights.map(i => `
+      <div class="insight-card">
+        <div class="insight-icon ${i.icon}">
+          <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        </div>
+        <div>
+          <strong style="font-size:13.5px;">${i.title}</strong>
+          <p style="font-size:13px;color:var(--text-muted);margin-top:4px;line-height:1.5;">${i.text}</p>
+        </div>
+      </div>`).join('');
+  }
+
+  // ── Training history tab ───────────────────────────────────────────────────
+  async function renderTrainingHistory() {
+    const el = document.getElementById('trainingHistory');
+    try {
+      const res  = await fetch(ML + '/ml/history');
+      const data = await res.json();
+      const history = data.history || [];
+      if (!history.length) {
+        el.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><p>No training runs yet. Click "Retrain" on any model.</p></div>`;
+        return;
+      }
+      el.innerHTML =
+        `<div class="table-head-row" style="grid-template-columns:2fr 1.5fr 1fr 1fr;">
+          <span>Model</span><span>Date</span><span>Status</span><span>Accuracy</span>
+        </div>` +
+        history.map(h => `
+          <div class="table-row" style="grid-template-columns:2fr 1.5fr 1fr 1fr;">
+            <strong style="font-size:13px;text-transform:capitalize;">${h.model}</strong>
+            <span style="font-size:12px;color:var(--text-muted);">${fmtDate(h.trainedAt)}</span>
+            <span class="badge badge-green">${h.status}</span>
+            <span style="font-size:13px;font-weight:600;color:var(--green);">${h.accuracy}</span>
+          </div>`).join('');
+    } catch {
+      el.innerHTML = `<div class="empty-state"><p>ML server offline — cannot load history.</p></div>`;
+    }
+  }
+
+  // ── Init: check server status on page load ─────────────────────────────────
+  refreshStatus();
+</script>
+</body>
+</html>

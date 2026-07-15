@@ -1,0 +1,40 @@
+[
+    {
+        "Engine": "Attendance Predictor",
+        "Type": "Classification (LightGBM)",
+        "Metrics": {
+            "Accuracy": 0.793,
+            "Precision": 0.792,
+            "Recall": 0.808,
+            "F1 Score": 0.8
+        }
+    },
+    {
+        "Engine": "Fraud Detection",
+        "Type": "Classification (RandomForestClassifier)",
+        "Metrics": {
+            "Accuracy": 1.0,
+            "Precision": 1.0,
+            "Recall": 1.0,
+            "F1 Score": 1.0
+        }
+    },
+    {
+        "Engine": "Job Demand Forecaster",
+        "Type": "Regression (XGBoost Regressor)",
+        "Metrics": {
+            "R2 Score": 0.958,
+            "MAE": 0.554,
+            "RMSE": 1.265
+        }
+    },
+    {
+        "Engine": "Dynamic Wage Predictor",
+        "Type": "Regression (CatBoostRegressor)",
+        "Metrics": {
+            "R2 Score": 0.931,
+            "MAE": 25.81,
+            "RMSE": 33.278
+        }
+    }
+]

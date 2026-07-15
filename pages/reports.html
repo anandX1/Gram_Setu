@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Reports – AI GramSetu</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <style>
+    .report-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+    .report-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:16px; }
+    .report-card { background:var(--card-bg); border:1px solid var(--border); border-radius:12px; padding:20px; }
+    .report-card-title { font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px; margin-bottom:16px; color:var(--text-dark); }
+    .report-card-title svg { width:16px; height:16px; stroke:var(--green); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .bar-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+    .bar-label { font-size:12.5px; color:var(--text-label); width:90px; flex-shrink:0; }
+    .bar-bg { flex:1; height:10px; background:var(--input-bg); border-radius:99px; overflow:hidden; }
+    .bar-fill { height:100%; background:var(--green); border-radius:99px; transition:width 0.5s; }
+    .bar-val { font-size:12px; color:var(--text-muted); width:30px; text-align:right; }
+    .insight-item { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+    .insight-item:last-child { border-bottom:none; }
+    .insight-dot { width:8px; height:8px; border-radius:50%; background:var(--green); margin-top:5px; flex-shrink:0; }
+    .insight-text { font-size:13px; color:var(--text-label); line-height:1.5; }
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><svg viewBox="0 0 32 32" fill="none"><circle cx="11" cy="10" r="4" fill="white"/><circle cx="21" cy="10" r="4" fill="white" opacity="0.7"/><path d="M2 26c0-5 4-8 9-8s9 3 9 8" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M21 18c3.5 0 7 2.2 7 6.5" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none" opacity="0.7"/></svg></div>
+    <div class="brand-text"><strong>AI GramSetu</strong><span>Village Admin Portal</span></div>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav"></nav>
+  <div class="sidebar-footer">
+    <div class="avatar">DE</div>
+    <div class="footer-info"><strong>Development User</strong><span>Postmaster</span></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title"><h1>Reports</h1><p>View reports and analytics</p></div>
+    <div class="lang-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> EN</div>
+  </div>
+
+  <div class="content">
+    <div class="stats-grid-4">
+      <div class="stat-card"><div><div class="stat-label">Total Workers</div><div class="stat-value" id="rWorkers">0</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">Total Jobs</div><div class="stat-value" id="rJobs">0</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">SMS Campaigns</div><div class="stat-value" id="rSMS">0</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div></div>
+      <div class="stat-card"><div><div class="stat-label">SMS Cost</div><div class="stat-value green" id="rCost">₹0</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div></div>
+    </div>
+
+    <div class="report-grid-2">
+      <div class="report-card">
+        <div class="report-card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>Worker Availability</div>
+        <div id="availChart"></div>
+      </div>
+      <div class="report-card">
+        <div class="report-card-title"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>Job Status Distribution</div>
+        <div id="jobChart"></div>
+      </div>
+    </div>
+
+    <div class="report-grid-3">
+      <div class="report-card">
+        <div class="report-card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>Skills Distribution</div>
+        <div id="skillChart"></div>
+      </div>
+      <div class="report-card">
+        <div class="report-card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Experience Levels</div>
+        <div id="expChart"></div>
+      </div>
+      <div class="report-card">
+        <div class="report-card-title"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Pay Rate Ranges</div>
+        <div id="payChart"></div>
+      </div>
+    </div>
+
+    <div class="report-grid-2">
+      <div class="report-card">
+        <div class="report-card-title"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Popular Job Locations</div>
+        <div id="locationChart"></div>
+      </div>
+      <div class="report-card">
+        <div class="report-card-title"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>SMS Performance</div>
+        <div id="smsPerf" style="display:flex;gap:32px;align-items:center;justify-content:center;padding:20px 0;">
+          <div style="text-align:center;"><div class="stat-value green" id="perfRecip">0</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Total Recipients</div></div>
+          <div style="text-align:center;"><div class="stat-value green" id="perfCost">₹0.00</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Total Cost</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-card">
+      <div class="report-card-title"><svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>Key Insights</div>
+      <div id="insights"></div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/main.js"></script>
+<script>
+  buildSidebar('reports');
+
+  function bar(label, val, max) {
+    const pct = max ? Math.round((val/max)*100) : 0;
+    return `<div class="bar-row"><span class="bar-label">${label}</span><div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div><span class="bar-val">${val}</span></div>`;
+  }
+
+  function emptyMsg(msg) { return `<div class="empty-state" style="padding:20px 0;"><p>${msg}</p></div>`; }
+
+  function render() {
+    const db = getDB();
+    const workers = db.workers||[], jobs = db.jobs||[], sms = db.sms||[];
+
+    document.getElementById('rWorkers').textContent = workers.length;
+    document.getElementById('rJobs').textContent = jobs.length;
+    document.getElementById('rSMS').textContent = sms.length;
+    const totalRecip = sms.reduce((a,s)=>a+(s.recipients||0),0);
+    document.getElementById('rCost').textContent = '₹'+totalRecip*0.5;
+    document.getElementById('perfRecip').textContent = totalRecip;
+    document.getElementById('perfCost').textContent = '₹'+(totalRecip*0.5).toFixed(2);
+
+    // Worker Availability
+    const avail = {Available:0,Busy:0,'On Leave':0};
+    workers.forEach(w=>{ avail[w.availability]=(avail[w.availability]||0)+1; });
+    const maxA = Math.max(...Object.values(avail),1);
+    document.getElementById('availChart').innerHTML = workers.length
+      ? Object.entries(avail).map(([k,v])=>bar(k,v,maxA)).join('')
+      : emptyMsg('No worker data');
+
+    // Job Status
+    const jstat = {Open:0,Assigned:0,Completed:0};
+    jobs.forEach(j=>{ jstat[j.status]=(jstat[j.status]||0)+1; });
+    const maxJ = Math.max(...Object.values(jstat),1);
+    document.getElementById('jobChart').innerHTML = jobs.length
+      ? Object.entries(jstat).map(([k,v])=>bar(k,v,maxJ)).join('')
+      : emptyMsg('No job data');
+
+    // Skills
+    const skills = {};
+    workers.forEach(w=>{ skills[w.skill]=(skills[w.skill]||0)+1; });
+    const sorted = Object.entries(skills).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const maxS = sorted.length ? sorted[0][1] : 1;
+    document.getElementById('skillChart').innerHTML = sorted.length
+      ? sorted.map(([k,v])=>bar(k,v,maxS)).join('')
+      : emptyMsg('No skill data');
+
+    // Experience
+    const exp = {'0-2 yrs':0,'3-5 yrs':0,'6-10 yrs':0,'10+ yrs':0};
+    workers.forEach(w=>{
+      const e=w.experience||0;
+      if(e<=2) exp['0-2 yrs']++;
+      else if(e<=5) exp['3-5 yrs']++;
+      else if(e<=10) exp['6-10 yrs']++;
+      else exp['10+ yrs']++;
+    });
+    const maxE = Math.max(...Object.values(exp),1);
+    document.getElementById('expChart').innerHTML = workers.length
+      ? Object.entries(exp).map(([k,v])=>bar(k,v,maxE)).join('')
+      : emptyMsg('No experience data');
+
+    // Pay Rate
+    const pay = {'<₹300':0,'₹300-500':0,'₹500-800':0,'₹800+':0};
+    jobs.forEach(j=>{
+      const p=j.payRate||0;
+      if(p<300) pay['<₹300']++;
+      else if(p<=500) pay['₹300-500']++;
+      else if(p<=800) pay['₹500-800']++;
+      else pay['₹800+']++;
+    });
+    const maxP = Math.max(...Object.values(pay),1);
+    document.getElementById('payChart').innerHTML = jobs.length
+      ? Object.entries(pay).map(([k,v])=>bar(k,v,maxP)).join('')
+      : emptyMsg('No pay data');
+
+    // Locations
+    const locs = {};
+    jobs.forEach(j=>{ if(j.location) locs[j.location]=(locs[j.location]||0)+1; });
+    const locSorted = Object.entries(locs).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const maxL = locSorted.length ? locSorted[0][1] : 1;
+    document.getElementById('locationChart').innerHTML = locSorted.length
+      ? locSorted.map(([k,v])=>bar(k,v,maxL)).join('')
+      : emptyMsg('No location data');
+
+    // Insights
+    const ins = [];
+    if(workers.length) ins.push(`${workers.length} total workers registered. ${avail.Available} are currently available for new assignments.`);
+    if(jobs.length) ins.push(`${jstat.Completed} of ${jobs.length} jobs have been completed (${jobs.length?Math.round(jstat.Completed/jobs.length*100):0}% completion rate).`);
+    if(sms.length) ins.push(`${sms.length} SMS campaigns sent to ${totalRecip} recipients, costing ₹${(totalRecip*0.5).toFixed(2)} total.`);
+    if(!ins.length) ins.push('Start registering workers and posting jobs to see insights here.');
+    document.getElementById('insights').innerHTML = ins.map(i=>`<div class="insight-item"><div class="insight-dot"></div><div class="insight-text">${i}</div></div>`).join('');
+  }
+
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+{
+  "users": [
+    {
+      "id": "u_1778010975781",
+      "name": "Ketan Kumar Biswal",
+      "email": "1985ketangames@gmail.com",
+      "password": "cXdlcnR5",
+      "method": "email",
+      "createdAt": "2026-05-05T19:56:15.781Z"
+    },
+    {
+      "id": "u_1781539619686",
+      "name": "Anand Kumar",
+      "email": "ak97gamerzbro@gmail.com",
+      "password": "MTIzNDU2Nzg5",
+      "method": "email",
+      "createdAt": "2026-06-15T16:06:59.688Z"
+    },
+    {
+      "id": "u_1781539754523",
+      "name": "Test Admin",
+      "email": "testadmin@example.com",
+      "password": "dGVzdDEyMzQ1",
+      "method": "email",
+      "createdAt": "2026-06-15T16:09:14.523Z"
+    },
+    {
+      "id": "u_1781551271874",
+      "name": "Admin Test",
+      "email": "admin@test.com",
+      "password": "cGFzc3dvcmQxMjM=",
+      "method": "email",
+      "createdAt": "2026-06-15T19:21:11.875Z"
+    },
+    {
+      "id": "u_1781564739813",
+      "name": "k3ke",
+      "email": "123.com",
+      "password": "MTIzNDU2",
+      "method": "email",
+      "createdAt": "2026-06-15T23:05:39.814Z"
+    },
+    {
+      "id": "u_1783623482399",
+      "name": "Admin User",
+      "email": "admin@example.com",
+      "password": "cGFzc3dvcmQ=",
+      "method": "email",
+      "createdAt": "2026-07-09T18:58:02.399Z"
+    }
+  ],
+  "sessions": [
+    {
+      "userId": "u_1781539619686",
+      "name": "Anand Kumar",
+      "loginAt": "2026-07-10T11:17:29.255Z"
+    },
+    {
+      "userId": "u_1783623482399",
+      "name": "Admin User",
+      "loginAt": "2026-07-09T18:58:02.399Z"
+    },
+    {
+      "userId": "u_1781539619686",
+      "name": "Anand Kumar",
+      "loginAt": "2026-07-09T18:50:11.534Z"
+    },
+    {
+      "userId": "u_1781539619686",
+      "name": "Anand Kumar",
+      "loginAt": "2026-07-09T11:49:58.630Z"
+    },
+    {
+      "userId": "u_1781539619686",
+      "name": "Anand Kumar",
+      "loginAt": "2026-07-08T15:40:47.906Z"
+    },
+    {
+      "userId": "u_1781539619686",
+      "name": "Anand Kumar",
+      "loginAt": "2026-06-16T11:24:35.694Z"
+    },
+    {
+      "userId": "u_1781564739813",
+      "name": "k3ke",
+      "loginAt": "2026-06-15T23:27:22.190Z"
+    },
+    {
+      "userId": "u_1781564739813",
+      "name": "k3ke",
+      "loginAt": "2026-06-15T23:05:39.814Z"
+    },
+    {
+      "userId": "u_1781551271874",
+      "name": "Admin Test",
+      "loginAt": "2026-06-15T19:21:11.875Z"
+    },
+    {
+      "userId": "u_1781539754523",
+      "name": "Test Admin",
+      "loginAt": "2026-06-15T16:09:14.523Z"
+    },
+    {
+      "userId": "u_1781539619686",
+      "name": "Anand Kumar",
+      "loginAt": "2026-06-15T16:06:59.688Z"
+    },
+    {
+      "userId": "u_1778010975781",
+      "name": "Ketan Kumar Biswal",
+      "loginAt": "2026-05-06T09:19:46.793Z"
+    },
+    {
+      "userId": "u_1778010975781",
+      "name": "Ketan Kumar Biswal",
+      "loginAt": "2026-05-05T19:56:15.781Z"
+    }
+  ],
+  "employers": [
+    {
+      "id": "emp_1778039178422",
+      "name": "Harish Chandra",
+      "email": "chadiwork@gmail.com",
+      "company": "Chadi Metal Works",
+      "phone": "+91 23433 12421",
+      "password": "cXdlcnR5",
+      "createdAt": "2026-05-06T03:46:18.422Z"
+    },
+    {
+      "id": "emp_1781551359888",
+      "name": "Employer Test",
+      "email": "employer@test.com",
+      "company": "Test Corp",
+      "phone": "+919876543210",
+      "password": "cGFzc3dvcmQxMjM=",
+      "createdAt": "2026-06-15T19:22:39.889Z"
+    },
+    {
+      "id": "emp_1781554574711",
+      "name": "Test Employer",
+      "email": "test@company.com",
+      "company": "Test Company",
+      "phone": "1234567890",
+      "password": "cGFzc3dvcmQ=",
+      "createdAt": "2026-06-15T20:16:14.711Z"
+    },
+    {
+      "id": "emp_1781565597584",
+      "name": "Test Employer",
+      "email": "patil@example.com",
+      "company": "Patil Constructions",
+      "phone": "+919876543210",
+      "password": "cGFzc3dvcmQxMjM=",
+      "createdAt": "2026-06-15T23:19:57.584Z"
+    },
+    {
+      "id": "emp_1783609218382",
+      "name": "Anand Kumar",
+      "email": "ak97gamerzbro@gmail.com",
+      "company": "everykart",
+      "phone": "ak97gamerzbro@gmail.com",
+      "password": "MTIzNDU2Nzg5",
+      "createdAt": "2026-07-09T15:00:18.383Z"
+    }
+  ],
+  "employer_jobs": [
+    {
+      "id": "ejob_1778039276197",
+      "employerId": "emp_1778039178422",
+      "title": "Metal work at smelting factory",
+      "location": "Jamshedpur",
+      "skillRequired": "Other",
+      "workersNeeded": 3,
+      "payRate": 550,
+      "startDate": "2026-06-09",
+      "description": "We need temproary workers for the surge in metal demands",
+      "status": "Open",
+      "assignedWorkers": [],
+      "completedAt": null,
+      "createdAt": "2026-05-06T03:47:56.197Z"
+    }
+  ],
+  "reviews": [],
+  "attendance": {
+    "2026-07-09": {
+      "Ramesh Kumar": {
+        "status": "Present",
+        "time": "12:33 am"
+      }
+    }
+  }
+}
