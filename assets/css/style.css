@@ -338,3 +338,40 @@ button svg, .btn-green svg, .btn-outline svg { width: 18px; height: 18px; stroke
   backdrop-filter: blur(2px); z-index: 90; opacity: 0; transition: opacity 0.3s;
 }
 .sidebar-overlay.open { display: block; opacity: 1; }
+
+
+/* ── ADDITIONAL MOBILE RESPONSIVENESS FIXES ── */
+@media (max-width: 1024px) {
+  .attendance-layout { grid-template-columns: 1fr !important; }
+  .mid-row, .report-grid-2, .report-grid-3, .templates-grid, .two-col { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 768px) {
+  /* Force all custom grids to single column */
+  .mid-row, .quick-actions-grid, .attendance-layout,
+  .report-grid-2, .report-grid-3, .templates-grid,
+  .field-row, .stats-row, .two-col,
+  .jobs-tbl-head, .jobs-tbl-row {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Flexbox overflow fix */
+  .main, .content { min-width: 0; overflow-x: hidden; }
+  
+  /* Make table cards properly scroll horizontally */
+  .table-card { 
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Remove fixed padding from body or content if it forces overflow */
+  body { overflow-x: hidden; }
+  
+  .auth-card, .card {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 16px !important;
+  }
+}
